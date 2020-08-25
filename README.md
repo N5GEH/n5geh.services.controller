@@ -3,7 +3,7 @@
 This repository contains controllers that control IoT devices via the FIWARE framework.
 Figure 1 illustrates the communication with the fiware framework: The controller service gets the current value of the IoT devices from the orion context broker
 and sends commands to the context broker that are passed to the IoT devices afterwards.
-The [filip](https://git.rwth-aachen.de/EBC/Team_BA/projects/n5geh/tools/n5geh.tools.filip) library is used for the communication with the orion context broker.
+The [filip](https://github.com/N5GEH/n5geh.tools.FiLiP) library is used for the communication with the orion context broker.
 
 
 ![Overview of the framework and controller integration](Figures/Overview.png)
