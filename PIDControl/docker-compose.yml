@@ -1,0 +1,19 @@
+version: '3'
+services:
+  PID:
+    image: pid4fiware
+    environment:
+      - NAME=PID_1
+      - CONFIG_FILE=False
+      - ORION_HOST=http://localhost
+      - FIWARE_SERVICE=simple_iot
+      - SENSOR_ENTITY_NAME=urn:ngsi-ld:Sensor:T1
+      - SENSOR_ATTRS=urn:ngsi-ld:Measurement:Temperature
+      - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Actuator:valve1
+      - ACTUATOR_TYPE=Actuator
+      - ACTUATOR_COMMAND=valveSet
+    networks:
+        - pid_control
+        
+networks:
+   pid_control:        
