@@ -55,3 +55,10 @@ Efficient Buildings and Indoor Climate
 [Institute for Energy Efficient Buildings and Indoor Climate (EBC)](http://www.ebc.eonerc.rwth-aachen.de)  
 [EON Energy Research Center (EONERC)](http://www.eonerc.rwth-aachen.de)  
 [RWTH University Aachen, Germany](http://www.rwth-aachen.de)
+
+
+# Acknowledgement
+<img src="Figures/BMWE_4C_Gef_en.jpg" width="250">
+
+
+We gratefully acknowledge the financial support provided by the BMWi (Federal Ministry for Economic Affairs and Energy), promotional reference 03ET1561A/B/C
