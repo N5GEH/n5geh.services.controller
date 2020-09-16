@@ -58,7 +58,6 @@ Efficient Buildings and Indoor Climate
 
 
 # Acknowledgement
-<img src="Figures/BMWE_4C_Gef_en.jpg" width="250">
-
+<img src="https://www.ebc.eonerc.rwth-aachen.de/global/show_picture.asp?mod=w%3d474%26h%3d%26gray%3d%26neg%3d%26mirror%3d%26flip%3d%26rleft%3d%26rright%3d%26r180%3d%26crop%3d%26id%3daaaaaaaaaayxgwf&id=aaaaaaaaaayxgwf" width="250">
 
 We gratefully acknowledge the financial support provided by the BMWi (Federal Ministry for Economic Affairs and Energy), promotional reference 03ET1561A/B/C
