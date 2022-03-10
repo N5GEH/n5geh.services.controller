@@ -1,17 +1,30 @@
-version: '3'
+version: '3.8'
 services:
   PID:
+    container_name: pid
+    hostname: pid
     image: pid4fiware
+    restart: always # the container will die, if the sensor/actuator not exist
+    volumes:
+      - ./PID4FIWARE.py:/app/PID4FIWARE.py # bind mount on the local file. Only for development.
     environment:
       - NAME=PID_1
       - CONFIG_FILE=False
-      - ORION_HOST=http://localhost
-      - FIWARE_SERVICE=simple_iot
-      - SENSOR_ENTITY_NAME=urn:ngsi-ld:Sensor:T1
-      - SENSOR_ATTRS=urn:ngsi-ld:Measurement:Temperature
-      - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Actuator:valve1
-      - ACTUATOR_TYPE=Actuator
-      - ACTUATOR_COMMAND=valveSet
+      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
+      - FIWARE_SERVICE=filip_tutorial_djs
+      - FIWARE_SERVICE_PATH=/djs_buildings
+      - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
+      - SENSOR_ATTRS=temperature
+      - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Heater:001
+      - ACTUATOR_TYPE=Heater
+      - ACTUATOR_COMMAND=heater_power
+      - SETPOINT=20
+      # Tuning parameters
+      - KP=100
+      - TI=10
+      - TD=0
+      - LIM_LOW=0
+      - LIM_HIGH=7000
     networks:
         - pid_control
         
