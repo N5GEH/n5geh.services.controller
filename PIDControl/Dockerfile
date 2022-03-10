@@ -14,6 +14,7 @@ COPY --from=0 /app/FiLiP /app/FiLiP
 #COPY requirements.txt requirements.txt
 #RUN pip install -r requirements.txt
 RUN pip install -e /app/FiLiP
+RUN pip install simple-pid
 COPY . /app
 
 CMD [ "python", "./PID4FIWARE.py" ]
