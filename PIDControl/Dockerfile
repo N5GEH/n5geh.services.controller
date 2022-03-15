@@ -15,6 +15,10 @@ COPY --from=0 /app/FiLiP /app/FiLiP
 #RUN pip install -r requirements.txt
 RUN pip install -e /app/FiLiP
 RUN pip install simple-pid
+RUN pip install pysimpleguiweb
+RUN pip install --upgrade remi
 COPY . /app
+
+EXPOSE 3000
 
 CMD [ "python", "./PID4FIWARE.py" ]

@@ -5,13 +5,15 @@ services:
     hostname: pid
     image: pid4fiware  # keep the same with your local image name
     restart: always
-    volumes:
-      - ./PID4FIWARE.py:/app/PID4FIWARE.py  # bind mount on the local file. ONLY FOR DEVELOPMENT.
+    ports:
+      - "3000:3000"
+#    volumes:
+#      - ./PID4FIWARE.py:/app/PID4FIWARE.py  # bind mount on the local file. ONLY FOR DEVELOPMENT.
     environment:
       - CONFIG_FILE=False
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
-      - FIWARE_SERVICE=filip_tutorial
+      - FIWARE_SERVICE=controller
       - FIWARE_SERVICE_PATH=/buildings
       # Controller entity id
       - NAME=PID_1
@@ -26,13 +28,12 @@ services:
       - SETPOINT=20
       - PAUSE_TIME=0.1
       - LIM_LOW=0
-      - LIM_HIGH=7000
+      - LIM_UPPER=7000
       # Tuning parameters, use negative values for reverse mode
-      - KP=200
+      - KP=200  # The value for the proportional gain Kp
       - KI=50  # The value for the integral gain Ki
       - KD=0  # The value for the derivative gain Kd
     networks:
         - pid_control
-        
 networks:
    pid_control:        
