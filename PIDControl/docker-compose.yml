@@ -6,9 +6,10 @@ services:
     image: pid4fiware  # keep the same with your local image name
     restart: always
     ports:
-      - "3000:3000"
-#    volumes:
-#      - ./PID4FIWARE.py:/app/PID4FIWARE.py  # bind mount on the local file. ONLY FOR DEVELOPMENT.
+      - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
+    volumes:
+      # bind mount the secret on the local file. The secret has to be updated in the local file
+      - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
     environment:
       - CONFIG_FILE=False
       # Fiware platform information
@@ -33,6 +34,8 @@ services:
       - KP=200  # The value for the proportional gain Kp
       - KI=50  # The value for the integral gain Ki
       - KD=0  # The value for the derivative gain Kd
+      # Security settings
+      - SECURITY_MODE=False  # set to True if activate security mode
     networks:
         - pid_control
 networks:

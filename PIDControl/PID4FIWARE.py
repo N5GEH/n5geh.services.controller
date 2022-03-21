@@ -22,6 +22,7 @@ from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedConte
 import threading
 import sys
 import PySimpleGUIWeb as sg
+from keycloak_token_handler.keycloak_python import KeycloakPython
 
 
 class Control:
@@ -39,7 +40,7 @@ class Control:
         # TODO hard coded 'type'?
         self.params['type'] = "PID_Controller"
         self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
-        # TODO reverse mode can be activate by passing negative tunings to controller
+        # reverse mode can be activated by passing negative tunings to controller
         self.params['Kp'] = float(os.getenv("KP", '1.0'))
         self.params['Ki'] = float(os.getenv("KI", '0'))
         self.params['Kd'] = float(os.getenv("KD", '0'))
@@ -58,6 +59,14 @@ class Control:
         self.params['service'] = os.getenv("FIWARE_SERVICE", '')
         self.params['service_path'] = os.getenv("FIWARE_SERVICE_PATH", '')
         self.params['cb_url'] = os.getenv("CB_URL", "http://localhost:1026")
+
+        # settings for security mode
+        self.security_mode = os.getenv("SECURITY_MODE", 'False').lower() in ('true', '1', 'yes')
+        self.params['token'] = (None, None)  # TODO if it is correct
+        # Get token from keycloak in security mode
+        if self.security_mode:
+            self.kp = KeycloakPython()
+            self.params['token'] = self.kp.get_access_token()
 
         # Create simple pid instance
         self.pid = PID(self.params['Kp'], self.params['Ki'], self.params['Kd'],
@@ -170,10 +179,28 @@ class Control:
             self.auto_mode = False
             print("Controller connection fails")
 
+    def update_token(self):
+        """
+        Update the token if necessary. Write the latest token into the
+        header of CB client.
+        """
+        token = self.kp.check_update_token_validity(input_token=self.params['token'], min_valid_time=60)
+        if all(token):  # if a valid token is returned
+            self.params['token'] = token
+        # Update the header with token
+        self.ORION_CB.headers.update(
+            {"Authorization": f"Bearer {self.params['token'][0]}"}
+        )
+
     def control_loop(self):
         """The control loop"""
         try:
             while True:
+                # Update token if run in security mode
+                if self.security_mode:
+                    self.update_token()
+                else:
+                    pass
                 self.update_params()
                 self.run()
                 time.sleep(self.params['pause_time'])
@@ -217,8 +244,8 @@ class ControllerPanel:
         #     [sg.Text("Setpoint", size=(10, 1)), sg.InputText(self.params["setpoint"], key="setpoint")],
         #     [sg.Button("Send"), sg.Button("Read")],
         # ]
-        # TODO do we need to select a port?
-        self.window = sg.Window("PID controller", layout, web_port=3000, web_start_browser=True)
+        # TODO use port 80 right now
+        self.window = sg.Window("PID controller", layout, web_port=80, web_start_browser=True)
 
     def gui_update(self):
         for param in self.params.keys():
@@ -291,6 +318,7 @@ class ControllerPanel:
 #     sys.exit(0)
 
 if __name__ == "__main__":
+    # TODO additional environment variable to activate/deactivate front end
     pid_controller = Control()
     pid_controller.create_entity()
     panel = ControllerPanel()
