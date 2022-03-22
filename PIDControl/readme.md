@@ -38,7 +38,7 @@ The PID controller service is available in the docker registry: TODO
 Environment variables of the container:
 
 *    NAME (name of the entity created in the context broker for managing the parameters)
-*    ORION_HOST (URL to orion context broker)
+*    ORION_HOST (URL to orion context broker) TODO recommended format heater(actuator_device)_pid(algorithms)_controller
 *    FIWARE_SERVICE (fiware service of sensor and actuator IoT device)
 *    FIWARE_SERVICE_PATH (fiware service of sensor and actuator IoT device)
 *    SENSOR_ENTITY_NAME (name of the entity that receives the measured data (process variable)))
@@ -62,3 +62,15 @@ The `Dockerfile` can be used to create the image of the PID controller.
 Therefore, the filip library has to be copied into this folder (the folder where the two PID scripts and the Dockerfile is).
 The `docker-compose.yaml` can be used to run the docker image. The environment variables of the compose file have to be modified according (entity name, url, ...).
 
+## Get Started
+`cd PIDControl`
+
+`docker build --tag pid4fiware .`
+
+`cd control_panel`
+
+`docker build --tag pidpanel .`
+
+`cd ..`
+
+`docker compose up -d`

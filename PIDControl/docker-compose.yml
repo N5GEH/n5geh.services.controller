@@ -1,12 +1,10 @@
 version: '3.8'
 services:
-  PID:
-    container_name: pid
-    hostname: pid
+  Controller:
+    container_name: pid4fiware
+    hostname: pid4fiware
     image: pid4fiware  # keep the same with your local image name
     restart: always
-    ports:
-      - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
       - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
@@ -17,7 +15,7 @@ services:
       - FIWARE_SERVICE=controller
       - FIWARE_SERVICE_PATH=/buildings
       # Controller entity id
-      - NAME=PID_1
+      - NAME=PID_example
       # Sensor information
       - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
       - SENSOR_TYPE=TemperatureSensor
@@ -39,5 +37,21 @@ services:
       - SECURITY_MODE=False  # set to True if activate security mode
     networks:
         - pid_control
+  Panel:
+    container_name: pidpanel
+    hostname: pidpanel
+    image: pidpanel  # keep the same with your local image name
+    restart: always
+    volumes:
+      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
+    ports:
+      - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
+    environment:
+      # Fiware platform information
+      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
+      - FIWARE_SERVICE=controller
+      - FIWARE_SERVICE_PATH=/buildings
+    networks:
+      - pid_control
 networks:
    pid_control:        
