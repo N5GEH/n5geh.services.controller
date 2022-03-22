@@ -20,16 +20,17 @@ services:
       - NAME=PID_1
       # Sensor information
       - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
-      - SENSOR_ATTRS=temperature
+      - SENSOR_TYPE=TemperatureSensor
+      - SENSOR_ATTR=temperature
       # Actuator information
       - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Heater:001
       - ACTUATOR_TYPE=Heater
       - ACTUATOR_COMMAND=heater_power
       # Controller parameters
-      - SETPOINT=20
-      - PAUSE_TIME=0.1
-      - LIM_LOW=0
-      - LIM_UPPER=7000
+      - SETPOINT=20  # set point of the control variable
+      - PAUSE_TIME=0.1  # sampling time step
+      - LIM_LOW=0  # lower limit of the actuator
+      - LIM_UPPER=7000  # upper limit of the actuator
       # Tuning parameters, use negative values for reverse mode
       - KP=200  # The value for the proportional gain Kp
       - KI=50  # The value for the integral gain Ki

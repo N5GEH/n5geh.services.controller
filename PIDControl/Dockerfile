@@ -16,6 +16,6 @@ RUN pip install simple-pid && pip install pysimpleguiweb && pip install --upgrad
 COPY ./PID4FIWARE.py /app/PID4FIWARE.py
 COPY ./keycloak_token_handler /app/keycloak_token_handler
 
-EXPOSE 3000
+EXPOSE 80
 
 CMD [ "python", "./PID4FIWARE.py" ]

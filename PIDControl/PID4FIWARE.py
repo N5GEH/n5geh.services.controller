@@ -18,9 +18,7 @@ import requests
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import FiwareHeader
 from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
-# import signal
 import threading
-import sys
 import PySimpleGUIWeb as sg
 from keycloak_token_handler.keycloak_python import KeycloakPython
 
@@ -30,14 +28,12 @@ class Control:
 
     def __init__(self):
         """Initialization"""
-
         # use envirnment variables  
         os.environ["CONFIG_FILE"] = "False"
 
         # define parameters
         self.params = {}
         self.params['name'] = os.getenv("NAME", 'PID_1')
-        # TODO hard coded 'type'?
         self.params['type'] = "PID_Controller"
         self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
         # reverse mode can be activated by passing negative tunings to controller
@@ -48,21 +44,19 @@ class Control:
         self.params['lim_upper'] = float(os.getenv("LIM_UPPER", '100'))
         self.params['pause_time'] = float(os.getenv("PAUSE_TIME", 0.2))
         self.params['sensor_entity_name'] = os.getenv("SENSOR_ENTITY_NAME", '')
-        # TODO multiple attributes allowed? If not, why not use the term SENSOR_ATTR without S
-        self.params['sensor_attrs'] = os.getenv("SENSOR_ATTRS", '')
+        self.params['sensor_type'] = os.getenv("SENSOR_TYPE", None)
+        self.params['sensor_attr'] = os.getenv("SENSOR_ATTR", '')
         self.params['actuator_entity_name'] = os.getenv("ACTUATOR_ENTITY_NAME", '')
         self.params['actuator_type'] = os.getenv("ACTUATOR_TYPE", '')
         self.params['actuator_command'] = os.getenv("ACTUATOR_COMMAND", '')
         self.params['actuator_command_value'] = self.params['actuator_command'] + '_info'
-        # TODO the service and service path has to be the same as the sensor and actuator
-        #  (there is only one fiware header!!!)
         self.params['service'] = os.getenv("FIWARE_SERVICE", '')
         self.params['service_path'] = os.getenv("FIWARE_SERVICE_PATH", '')
         self.params['cb_url'] = os.getenv("CB_URL", "http://localhost:1026")
 
         # settings for security mode
         self.security_mode = os.getenv("SECURITY_MODE", 'False').lower() in ('true', '1', 'yes')
-        self.params['token'] = (None, None)  # TODO if it is correct
+        self.params['token'] = (None, None)
         # Get token from keycloak in security mode
         if self.security_mode:
             self.kp = KeycloakPython()
@@ -84,24 +78,18 @@ class Control:
 
         # Create orion context broker client
         self.ORION_CB = ContextBrokerClient(url=self.params['cb_url'], fiware_header=fiware_header)
-        # self.IOTA = IoTAClient(url=self.params['cb_url'], fiware_header=fiware_header)
 
     def create_entity(self):
         """Creates entitiy of PID controller in orion context broker"""
-        # TODO we communicate via 1026, how to change the parameters of the controller
         try:
             self.ORION_CB.get_entity(entity_id=self.params['name'],
                                      entity_type=self.params['type'])
             print('Entity name already assigned')
-            # TODO how to update the entity? or delete the controller
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
             if "NOT FOUND" not in msg.upper():
                 raise  # throw other errors except "entity not found"
             print('[INFO]: Create new PID entity')
-            # TODO better entity name method? To avoid duplicated names
-            #  For example: heater(actuator_device)_pid(algorithms)_controller_1(random_number?)
-            # TODO entity type is now hard coded to PID_Controller
             pid_entity = ContextEntity(id=f'{self.params["name"]}',
                                        type=self.params['type'])
             cb_attrs = []
@@ -115,7 +103,6 @@ class Control:
     def update_params(self):
         """Read PID parameters of entity in context broker and updates PID control parameters"""
         # read PID parameters from context broker
-        # that means it is possible to change the parameters via context broker
         for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
             self.params[attr] = float(
                 self.ORION_CB.get_attribute_value(entity_id=self.params['name'],
@@ -125,11 +112,6 @@ class Control:
         self.pid.tunings = (self.params['Kp'], self.params['Ki'], self.params['Kd'])
         self.pid.output_limits = (self.params['lim_low'], self.params['lim_upper'])
         self.pid.setpoint = self.params['setpoint']
-
-        # TODO it is possible to use NGSI-LD for fiware intern data transfer @sbl
-        #   In this way, the controller does not need to query the values from Sensors
-        #   or Actuators. The measurements will be sent to the controller entity, and
-        #   the controller here only needs to query data from its own entity.
         # read measured values from CB
         try:
             # read the current actuator value (synchronize the value with the actuator)
@@ -141,7 +123,8 @@ class Control:
 
             # read the control value from sensor
             x = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
-                                                  attr_name=self.params['sensor_attrs'])
+                                                  entity_type=self.params['sensor_type'],
+                                                  attr_name=self.params['sensor_attr'])
             # set 0 if empty
             if x == " ":
                 x = '0'
@@ -163,7 +146,6 @@ class Control:
     def run(self):
         """Calculation of PID output"""
         try:
-            # TODO self.auto_mode can also be used to shut down the controller
             if self.auto_mode:  # if connection is good, auto_mode = True -> controller active
                 # calculate PID output
                 self.y = self.pid(self.x_act)
@@ -217,7 +199,6 @@ class ControllerPanel:
         # FIWARE parameters
         self.cb_url = os.getenv("CB_URL", "http://localhost:1026")
         self.entity_id = os.getenv("NAME", 'PID_1')
-        # TODO hard coded?
         self.entity_type = "PID_Controller"
         self.service = os.getenv("FIWARE_SERVICE", '')
         self.service_path = os.getenv("FIWARE_SERVICE_PATH", '')
@@ -234,24 +215,17 @@ class ControllerPanel:
             [sg.Text(param.capitalize(), size=(10, 1)), sg.InputText(self.params[param], key=param)]
             for param in self.params.keys()
         ]
-        layout = param_bars + [[sg.Button("Send"), sg.Button("Read")]]
-        # layout = [
-        #     [sg.Text("Kp:", size=(10, 1)), sg.InputText(self.params["kp"], key="kp")],
-        #     [sg.Text("Ki:", size=(10, 1)), sg.InputText(self.params["ki"], key="ki")],
-        #     [sg.Text("Kd:", size=(10, 1)), sg.InputText(self.params["kd"], key="kd")],
-        #     [sg.Text("Lim_low:", size=(10, 1)), sg.InputText(self.params["lim_low"], key="lim_low")],
-        #     [sg.Text("Lim_upper:", size=(10, 1)), sg.InputText(self.params["lim_upper"], key="lim_upper")],
-        #     [sg.Text("Setpoint", size=(10, 1)), sg.InputText(self.params["setpoint"], key="setpoint")],
-        #     [sg.Button("Send"), sg.Button("Read")],
-        # ]
-        # TODO use port 80 right now
+        buttons_bar = [[sg.Button("Send"), sg.Button("Read")]]
+        layout = param_bars + buttons_bar
         self.window = sg.Window("PID controller", layout, web_port=80, web_start_browser=True)
 
     def gui_update(self):
+        """Update the shown text on web GUI"""
         for param in self.params.keys():
             self.window[param].update(self.params[param])
 
     def gui_loop(self):
+        """GUI main loop"""
         try:
             while True:
                 event, values = self.window.read(timeout=10)
@@ -269,6 +243,7 @@ class ControllerPanel:
             os.abort()
 
     def read(self):
+        """Read parameter values from context broker"""
         try:
             params_update = self.initialize_params()
             for param in self.params.keys():
@@ -286,6 +261,7 @@ class ControllerPanel:
             self.gui_update()
 
     def send(self, params):
+        """Send new parameter values to context broker"""
         for param in self.params.keys():
             try:
                 value = float(params[param])
@@ -298,6 +274,7 @@ class ControllerPanel:
 
     @staticmethod
     def initialize_params():
+        """Initialize the values of all control parameters"""
         # initialize controller parameters shown on panel
         params = {
             "Kp": "Proportional gain",
@@ -310,33 +287,13 @@ class ControllerPanel:
         return params
 
 
-# def exit_handler(*args):
-#     # TODO not used yet
-#     pid_controller.ORION_CB.delete_entity(entity_id=pid_controller.params['name'],
-#                                           entity_type=pid_controller.params['type'])
-#     print("Entity deleted")
-#     sys.exit(0)
-
 if __name__ == "__main__":
-    # TODO additional environment variable to activate/deactivate front end
     pid_controller = Control()
     pid_controller.create_entity()
     panel = ControllerPanel()
-    # panel.gui_setup()
-
-    # # TODO maybe delete the entity if the program is shut down
-    # # Delete the controller entity before the container stops
-    # signal.signal(signal.SIGTERM, exit_handler)
 
     # Parallelism with multi thread
     th1 = threading.Thread(target=pid_controller.control_loop, daemon=False)
     th2 = threading.Thread(target=panel.gui_loop, daemon=False)
     th1.start()
     th2.start()
-
-    # Delete controller entity before program is terminated
-    # try: ...
-    # finally:
-    #     # Delete the controller entity if the container stops
-    #     exit_handler()
-    #     raise
