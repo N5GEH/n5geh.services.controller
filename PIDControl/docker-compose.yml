@@ -1,19 +1,43 @@
-version: '3'
+version: '3.8'
 services:
   PID:
-    image: pid4fiware
+    container_name: pid
+    hostname: pid
+    image: pid4fiware  # keep the same with your local image name
+    restart: always
+    ports:
+      - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
+    volumes:
+      # bind mount the secret on the local file. The secret has to be updated in the local file
+      - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
     environment:
-      - NAME=PID_1
       - CONFIG_FILE=False
-      - ORION_HOST=http://localhost
-      - FIWARE_SERVICE=simple_iot
-      - SENSOR_ENTITY_NAME=urn:ngsi-ld:Sensor:T1
-      - SENSOR_ATTRS=urn:ngsi-ld:Measurement:Temperature
-      - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Actuator:valve1
-      - ACTUATOR_TYPE=Actuator
-      - ACTUATOR_COMMAND=valveSet
+      # Fiware platform information
+      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
+      - FIWARE_SERVICE=controller
+      - FIWARE_SERVICE_PATH=/buildings
+      # Controller entity id
+      - NAME=PID_1
+      # Sensor information
+      - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
+      - SENSOR_TYPE=TemperatureSensor
+      - SENSOR_ATTR=temperature
+      # Actuator information
+      - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Heater:001
+      - ACTUATOR_TYPE=Heater
+      - ACTUATOR_COMMAND=heater_power
+      # Controller parameters
+      - SETPOINT=20  # set point of the control variable
+      - PAUSE_TIME=0.1  # sampling time step
+      - LIM_LOW=0  # lower limit of the actuator
+      - LIM_UPPER=7000  # upper limit of the actuator
+      # Tuning parameters, use negative values for reverse mode
+      - KP=200  # The value for the proportional gain Kp
+      - KI=50  # The value for the integral gain Ki
+      - KD=0  # The value for the derivative gain Kd
+      # Security settings
+      - SECURITY_MODE=False  # set to True if activate security mode
     networks:
         - pid_control
-        
 networks:
    pid_control:        

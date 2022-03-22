@@ -1,0 +1,134 @@
+[
+  {
+    "timezone": "Europe/London",
+    "timestamp": null,
+    "apikey": "buildings",
+    "endpoint": null,
+    "protocol": "IoTA-JSON",
+    "transport": "MQTT",
+    "expressionLanguage": null,
+    "explicitAttrs": false,
+    "device_id": "device:001",
+    "service": "controller",
+    "service_path": "/buildings",
+    "entity_name": "urn:ngsi-ld:WeatherStation:001",
+    "entity_type": "WeatherStation",
+    "lazy": [],
+    "commands": [],
+    "attributes": [
+      {
+        "name": "simtime",
+        "type": "Number",
+        "metadata": {},
+        "expression": null,
+        "entity_name": null,
+        "entity_type": null,
+        "reverse": null,
+        "object_id": "t_sim"
+      },
+      {
+        "name": "temperature",
+        "type": "Number",
+        "metadata": {},
+        "expression": null,
+        "entity_name": null,
+        "entity_type": null,
+        "reverse": null,
+        "object_id": "t_amb"
+      }
+    ],
+    "static_attributes": [],
+    "internal_attributes": [],
+    "ngsiVersion": "v2"
+  },
+  {
+    "timezone": "Europe/London",
+    "timestamp": null,
+    "apikey": "buildings",
+    "endpoint": null,
+    "protocol": "IoTA-JSON",
+    "transport": "MQTT",
+    "expressionLanguage": null,
+    "explicitAttrs": false,
+    "device_id": "device:002",
+    "service": "controller",
+    "service_path": "/buildings",
+    "entity_name": "urn:ngsi-ld:TemperatureSensor:001",
+    "entity_type": "TemperatureSensor",
+    "lazy": [],
+    "commands": [],
+    "attributes": [
+      {
+        "name": "simtime",
+        "type": "Number",
+        "metadata": {},
+        "expression": null,
+        "entity_name": null,
+        "entity_type": null,
+        "reverse": null,
+        "object_id": "t_sim"
+      },
+      {
+        "name": "temperature",
+        "type": "Number",
+        "metadata": {},
+        "expression": null,
+        "entity_name": null,
+        "entity_type": null,
+        "reverse": null,
+        "object_id": "t_zone"
+      }
+    ],
+    "static_attributes": [
+      {
+          "name": "measuredBy",
+          "type": "Relationship",
+          "value": "PID_1",
+          "link": {
+             "attributes": ["temperature"],
+             "name": "providedBy",
+             "type": "PID_Controller"
+          }
+        }
+    ],
+    "internal_attributes": [],
+    "ngsiVersion": "v2"
+  },
+  {
+    "timezone": "Europe/London",
+    "timestamp": null,
+    "apikey": "buildings",
+    "endpoint": null,
+    "protocol": "IoTA-JSON",
+    "transport": "MQTT",
+    "expressionLanguage": null,
+    "explicitAttrs": false,
+    "device_id": "device:003",
+    "service": "controller",
+    "service_path": "/buildings",
+    "entity_name": "urn:ngsi-ld:Heater:001",
+    "entity_type": "Heater",
+    "lazy": [],
+    "commands": [
+      {
+        "name": "heater_power",
+        "type": "Number"
+      }
+    ],
+    "attributes": [
+      {
+        "name": "simtime",
+        "type": "Number",
+        "metadata": {},
+        "expression": null,
+        "entity_name": null,
+        "entity_type": null,
+        "reverse": null,
+        "object_id": "t_sim"
+      }
+    ],
+    "static_attributes": [],
+    "internal_attributes": [],
+    "ngsiVersion": "v2"
+  }
+]

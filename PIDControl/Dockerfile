@@ -1,13 +1,21 @@
-FROM python:3.7-alpine
+# syntax=docker/dockerfile:1
 
-ADD PID4FIWARE.py /
-ADD filip /
-
-RUN pip install requests
-RUN pip install pyyaml
-
+# stage 0
+FROM alpine/git
 WORKDIR /app
+RUN git clone https://github.com/N5GEH/FiLiP.git
 
-COPY . /app
+# stage 1
+FROM python:3.9-slim
+WORKDIR /app
+COPY --from=0 /app/FiLiP /app/FiLiP
+#COPY requirements.txt requirements.txt
+#RUN pip install -r requirements.txt
+RUN pip install -e /app/FiLiP
+RUN pip install simple-pid && pip install pysimpleguiweb && pip install --upgrade remi
+COPY ./PID4FIWARE.py /app/PID4FIWARE.py
+COPY ./keycloak_token_handler /app/keycloak_token_handler
+
+EXPOSE 80
 
 CMD [ "python", "./PID4FIWARE.py" ]
