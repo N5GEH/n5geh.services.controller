@@ -1,76 +1,115 @@
-## PIDcontroller.py
-The python script `PIDcontroller.py` contains a simple implementation of a PID controller.
-The controller can be run in a real time application. Therefore, the parameter *fixed_dt*
-has to be zero. Every time the PID controller is exectued, the system time is from the current and last execution is used to calculate 
-the integral and derivative part.
-
-If the parameter *fixed_dt* is larger than 0, *fixed_dt* is used as time interval to calculate the integral and derivative part.
-This option can be used for simulations.
-
 ## PID4FIWARE
-The python script `PID4FIWARE.py` includes the PIDcontroller and uses the Filip library to exchange data with the orion context broker.
-The needed parameters e.g. URL of the context broker are passed via environment variables.
-Additionally, the entity name and the attribute name of the sensor device as well 
-as the entity name and the command name of the actuator device have to be specified by environment variables.
 
-The PID controller (proportional-integral-derivative controller) is commonly used in automation to control SISO (Single Input, Single Output) systems. The PID controller varies the control variable (e.g. a valve opening or heating power) to reduce the error between the process variable (e.g. volume flow or temperature) and a set point. 
+The PID controller (proportional-integral-derivative controller) is commonly used in automation to control SISO (Single Input, Single Output) systems. The PID controller adjusts the control variable (e.g. a valve opening or heating power) to minimize the error between the process variable (e.g. volume flow or temperature) and a given setpoint.
 
-The PID Controller Service is a PID controller that is virtualized in a docker container (www.docker.com) and integrated in the developed cloud framework (5 Platform Services). The PID Controller Service gets measured values from the orion context broker and send commands to the context broker which are passed to the IoT devices (actuators) afterwards. Therefore, the service name, orion host URL, fiware servicepath and entity names IoT devices for measurement and actuation have to be defined. This is done by environment variables when the container is started. Further, the parameters for the PID controller (e.g. set point) can be defined by environment variables (see below).
+PID4FIWARE provides a PID controller service that can control a system via the developed IoT plattform [n5geh](https://github.com/N5GEH/n5geh.platform). PID4FIWARE uses the [FiLiP](https://github.com/N5GEH/FiLiP) library to exchange data with the plattform, i.e. reading measurements from the sensor or sending commands to the actuator. The used PID controller is based on the public libary [simple-pid](https://pypi.org/project/simple-pid/).
 
-In order to manage the PID controller and modify the parameters during operation, the service automatically creates an entity in the orion context broker including the following attributes:
+In order to manage the PID controller and modify the control parameters during operation, PID4FIWARE automatically creates an entity in the orion context broker of the [n5geh](https://github.com/N5GEH/n5geh.platform) IoT plattform, which holds the following 6 attributes for the PID controller:
 
+| Attribute Name | Description                         |
+|----------------|-------------------------------------|
+| setpoint       | Setpoint of the process variable    |
+| Kp             | Proportional gain of PID            |
+| Ki             | Integral gain of PID                |
+| Kd             | Deviation gain of PID               |
+| lim_low        | Lower limit of the control variable |
+| lim_upper      | Upper limit of the control variable |
 
-*    setpoint (set point for controller)
-*    kp (Kp tuner parameter of PID)
-*    ti (Ti tuner parameter of PID)
-*    td (Td tuner parameter of PID)
-*    lim_low (lower limit of actuator signal)
-*    lim_high (higher limit of actuator signal)
-*    reverse_act (reverse action, e.g. for cooling instead of heating)
+In other words, the control parameters are storaged on the IoT plattform, which can be adjusted by sending requests to the orioin context broker. It must be addressed that the reverse mode (reverse action, e.g. for cooling instead of heating) can be activated by assigning negative values to Kp, Ki, and Kd.
 
+Besides, in order to take measurements and actuations, the entity name and the attribute name of the sensor device as well as the entity name and the command name of the actuator device have to be defined. These information including the plattform specific information (e.g. context broker url) are passed to PID4FIWARE via environment variables. All the supported environment variables are shown as below.
 
-The attributes can be changed by sending a post to the context broker for the specific pid controller service name and attribute (see orion).
+| Name        | Example Value                     | Descriptions                                               |
+|----------------------|-----------------------------------|------------------------------------------------------------|
+| CB_URL               | <http://host.docker.internal:1026>  | URL of the orion context broker FROM INSIDE THE CONTAINER! |
+| FIWARE_SERVICE       | controller                        | Fiware service name                                        |
+| FIWARE_SERVICE_PATH  | /buildings                        | Fiware service path                                        |
+| CONTROLLER_NAME      | PID_example                       | Entity ID of the PID controller                            |
+| SENSOR_ENTITY_NAME   | urn:ngsi-ld:TemperatureSensor:001 | Entity ID of the sensor device                             |
+| SENSOR_TYPE          | TemperatureSensor                 | Entity type of the sensor device                           |
+| SENSOR_ATTR          | temperature                       | Attribute name of the process variable                     |
+| ACTUATOR_ENTITY_NAME | urn:ngsi-ld:Heater:001            | Entity ID of the actuator device                           |
+| ACTUATOR_TYPE        | Heater                            | Entity type of the actuator device                         |
+| ACTUATOR_COMMAND     | heater_power                      | Command name of the control variable                       |
+| SETPOINT             | 20                                | Setpoint of the process variable                           |
+| PAUSE_TIME           | 0.1                               | Sampling time step                                         |
+| LIM_LOW              | 0                                 | Lower limit of the control variable                        |
+| LIM_UPPER            | 7000                              | Upper limit of the control variable                        |
+| KP                   | 200                               | Proportional gain Kp                                       |
+| KI                   | 50                                | Integral gain Ki                                      |
+| KD                   | 0                                 | Deviation gain Kd                                      |
+| SECURITY_MODE        | False                             | Whether to use security mode                               |
 
-A tutorial of the PID Controller Service can be found here: [Tutorial Monitoring and PID Controller](https://git.rwth-aachen.de/EBC/Team_BA/projects/n5geh/services/n5geh.services.controller/-/tree/master/Tutorial)
+PID4FIWARE is virtualized in a [docker](www.docker.com) container. The virtualization makes it very simple to deploy.
 
-The PID controller service is available in the docker registry: TODO
+The container can either be built and then run locally, or can be pulled directly from docker hub.
 
-Environment variables of the container:
+The first option is to build an image locally. You need to clone this repository to your local computer or virtual machine (VM) and then change the working directory to `\n5geh.services.controller\PIDControl`:
 
-*    NAME (name of the entity created in the context broker for managing the parameters)
-*    ORION_HOST (URL to orion context broker) TODO recommended format heater(actuator_device)_pid(algorithms)_controller
-*    FIWARE_SERVICE (fiware service of sensor and actuator IoT device)
-*    FIWARE_SERVICE_PATH (fiware service of sensor and actuator IoT device)
-*    SENSOR_ENTITY_NAME (name of the entity that receives the measured data (process variable)))
-*    SENSOR_ATTRS (attribute name of the sensor entity that receives the measured data (process variable)))
-*    ACTUATOR_ENTITY_NAME (name of the entity corresponding to the actuator)
-*    ACTUATOR_TYPE (type of the actuator entity)
-*    ACTUATOR_COMMAND (name of the command that corresponds to the control variable)
-*    SETPOINT (set point for controller)
-*    KP (Kp tuner parameter of PID)
-*    TI (Ti tuner parameter of PID)
-*    TD (Td tuner parameter of PID)
-*    LIM_LOW (lower limit of actuator signal)
-*    LIM_HIGH (higher limit of actuator signal)
-*    REVERSE_ACT (reverse action, e.g. for cooling instead of heating)
-*    PAUSE_TIME (execution interval in seconds: output is computed and send once each interval)
+```bash
+git clone https://github.com/N5GEH/n5geh.services.controller.git
 
-Additional information can be found [here](https://wiki.n5geh.de/pages/viewpage.action?spaceKey=EN&title=PID+Controller+Service)
+cd n5geh.services.controller
 
-## Docker files
-The `Dockerfile` can be used to create the image of the PID controller. 
-Therefore, the filip library has to be copied into this folder (the folder where the two PID scripts and the Dockerfile is).
-The `docker-compose.yaml` can be used to run the docker image. The environment variables of the compose file have to be modified according (entity name, url, ...).
+cd PIDControl
+```
 
-## Get Started
-`cd PIDControl`
+Then you can build the image use `docker build` command:
 
-`docker build --tag pid4fiware .`
+```bash
+docker build --tag pid4fiware .
+```
 
-`cd control_panel`
+After that, you can run the image `pid4fiware` as a container:
 
-`docker build --tag pidpanel .`
+```bash
+docker run -d \
+    --env-file env.list \
+    --volume "$(pwd)/keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
+    --restart always \
+    --name pid_controller_1 \
+    pid4fiware
+```
 
-`cd ..`
+The second option is to use the online image on docker hub [here](www.dockerhub:pid4fiware.come) (note that this image may not always be updated):
 
-`docker compose up -d`
+```bash
+TODO
+docker run -d \
+    --env-file env.list \
+    --volume "$(pwd)/keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
+    --restart always \
+    --name pid_controller_2 \
+    dockerhub:pid4fiware
+```
+
+The various environment variables are passed to the container through the file `env.list`. Therefore, please make sure to set up each variable properly before starting up PID4FIWARE as a container.
+
+## Control Panel
+
+The control panel is a web based GUI interface of the PID controllers. It simply reads/sends control parameters from the orion context broker and displays the data in a user-friendly way. It must be addressed that this panel is mainly designed for demonstration and learning. It is not recommended to use this panel to interact with the deployed PID-controller in real practice because **there is no guarantee for its reliability and functionality**.
+
+This control panel can also be run as a docker container. Firstly, you should build a local image named `pidpanel`:
+
+```bash
+cd control_panel
+docker build --tag pidpanel .
+```
+
+Secondly, you must adjust the following three enrionment variables in `docker-compose.yml`.
+
+| Name        | Example Value                     | Descriptions                                               |
+|----------------------|-----------------------------------|------------------------------------------------------------|
+| CB_URL               | <http://host.docker.internal:1026>  | URL of the orion context broker FROM INSIDE THE CONTAINER! |
+| FIWARE_SERVICE       | controller                        | Fiware service name                                        |
+| FIWARE_SERVICE_PATH  | /buildings                        | Fiware service path                                        |
+
+Finnaly, the container can be simply started by:
+
+```bash
+docker compose up -d
+```
+
+If you are using the default settings, you can open the control panel [here](http://localhost:80). Now you should see the interface as shown below.
+
+![Web based contol panel GUI](../Figures/control_panel.png)

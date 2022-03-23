@@ -29,7 +29,7 @@ class Control:
         # os.environ["CONFIG_FILE"] = "False"
         # define parameters
         self.params = {}
-        self.params['name'] = os.getenv("NAME", 'PID_1')
+        self.params['controller_name'] = os.getenv("CONTROLLER_NAME", 'PID_1')
         self.params['type'] = "PID_Controller"
         self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
         # reverse mode can be activated by passing negative tunings to controller
@@ -67,7 +67,7 @@ class Control:
         # Additional parameters
         self.auto_mode = True
         self.y = None
-        self.x_act = self.params['setpoint']  # set the initial control value to set point
+        self.x_act = self.params['setpoint']  # set the initial measurement to set point
 
         # Create the fiware header
         fiware_header = FiwareHeader(service=self.params['service'], service_path=self.params['service_path'])
@@ -78,7 +78,7 @@ class Control:
     def create_entity(self):
         """Creates entitiy of PID controller in orion context broker"""
         try:
-            self.ORION_CB.get_entity(entity_id=self.params['name'],
+            self.ORION_CB.get_entity(entity_id=self.params['controller_name'],
                                      entity_type=self.params['type'])
             print('Entity name already assigned')
         except requests.exceptions.HTTPError as err:
@@ -101,7 +101,7 @@ class Control:
         # read PID parameters from context broker
         for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
             self.params[attr] = float(
-                self.ORION_CB.get_attribute_value(entity_id=self.params['name'],
+                self.ORION_CB.get_attribute_value(entity_id=self.params['controller_name'],
                                                   entity_type=self.params['type'],
                                                   attr_name=attr))
         # update PID parameters
@@ -117,7 +117,7 @@ class Control:
             if not isinstance(self.y, (int, float)):
                 self.y = None
 
-            # read the control value from sensor
+            # read the value of process variable from sensor
             x = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
                                                   entity_type=self.params['sensor_type'],
                                                   attr_name=self.params['sensor_attr'])

@@ -9,13 +9,12 @@ services:
       # bind mount the secret on the local file. The secret has to be updated in the local file
       - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
     environment:
-      - CONFIG_FILE=False
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
       - FIWARE_SERVICE=controller
       - FIWARE_SERVICE_PATH=/buildings
       # Controller entity id
-      - NAME=PID_example
+      - CONTROLLER_NAME=PID_example
       # Sensor information
       - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
       - SENSOR_TYPE=TemperatureSensor
@@ -25,7 +24,7 @@ services:
       - ACTUATOR_TYPE=Heater
       - ACTUATOR_COMMAND=heater_power
       # Controller parameters
-      - SETPOINT=20  # set point of the control variable
+      - SETPOINT=20  # set point of the process variable
       - PAUSE_TIME=0.1  # sampling time step
       - LIM_LOW=0  # lower limit of the actuator
       - LIM_UPPER=7000  # upper limit of the actuator
@@ -42,8 +41,8 @@ services:
     hostname: pidpanel
     image: pidpanel  # keep the same with your local image name
     restart: always
-    volumes:
-      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
+#    volumes:
+#      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     environment:

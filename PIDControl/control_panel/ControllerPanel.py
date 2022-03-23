@@ -33,7 +33,10 @@ class ControllerPanel:
 
         # initial pid controller list
         self.controller_list = []
-        self.refresh_list()
+        try:
+            self.refresh_list()
+        except:
+            pass
 
         # initialize gui window
         sg.theme("DarkBlue")
