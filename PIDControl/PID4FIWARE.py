@@ -86,7 +86,7 @@ class Control:
             if "NOT FOUND" not in msg.upper():
                 raise  # throw other errors except "entity not found"
             print('[INFO]: Create new PID entity')
-            pid_entity = ContextEntity(id=f'{self.params["name"]}',
+            pid_entity = ContextEntity(id=f"{self.params['controller_name']}",
                                        type=self.params['type'])
             cb_attrs = []
             for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
