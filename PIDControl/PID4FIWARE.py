@@ -4,138 +4,190 @@ Created on Wed Mar  6 14:49:16 2019
 
 @author: aku
 
+Updated on Tue Mar 15 15:47:00 2022
+
+@author: jdu
+
 PID controller with Fiware interface
 """
-
 import time
 import os
-import PIDcontroller
-import sys
+from simple_pid import PID
+import requests
+from filip.clients.ngsi_v2 import ContextBrokerClient
+from filip.models.base import FiwareHeader
+from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
+from keycloak_token_handler.keycloak_python import KeycloakPython
 
-filip_path = os.getenv("FILIP_PATH", '/filip')
-sys.path.append(filip_path) # insert correct path to the filip library
-import filip.config, filip.orion
 
+class Control:
+    """PID controller with FIWARE interface"""
 
-class Control():
-    """PID controller with FIWARE interface""" 
-    
     def __init__(self):
         """Initialization"""
-        
-        # use envirnment variables  
-        os.environ["CONFIG_FILE"] = "False"
-          
+        # # use envirnment variables
+        # os.environ["CONFIG_FILE"] = "False"
         # define parameters
-        self.params={}
-        self.params['name'] = os.getenv("NAME", 'PID_1')
-        self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15')) 
+        self.params = {}
+        self.params['controller_name'] = os.getenv("CONTROLLER_NAME", 'PID_1')
+        self.params['type'] = "PID_Controller"
+        self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
+        # reverse mode can be activated by passing negative tunings to controller
         self.params['Kp'] = float(os.getenv("KP", '1.0'))
-        self.params['Ti'] = float(os.getenv("TI", '100'))
-        self.params['Td'] = float(os.getenv("TD", '0'))
+        self.params['Ki'] = float(os.getenv("KI", '0'))
+        self.params['Kd'] = float(os.getenv("KD", '0'))
         self.params['lim_low'] = float(os.getenv("LIM_LOW", '0'))
-        self.params['lim_high'] = float(os.getenv("LIM_HIGH", '100'))
-        self.params['reverse_act'] = 'True' if os.getenv("REVERSE_ACT", 'False') == 'True' or os.getenv("REVERSE_ACT", 'False') == 'true' or os.getenv("REVERSE_ACT", 'False') == 'TRUE' else 'False'
-        self.params['pause_time'] = float(os.getenv("PAUSE_TIME", 2))
+        self.params['lim_upper'] = float(os.getenv("LIM_UPPER", '100'))
+        self.params['pause_time'] = float(os.getenv("PAUSE_TIME", 0.2))
         self.params['sensor_entity_name'] = os.getenv("SENSOR_ENTITY_NAME", '')
-        self.params['sensor_attrs'] = os.getenv("SENSOR_ATTRS", '')
+        self.params['sensor_type'] = os.getenv("SENSOR_TYPE", None)
+        self.params['sensor_attr'] = os.getenv("SENSOR_ATTR", '')
         self.params['actuator_entity_name'] = os.getenv("ACTUATOR_ENTITY_NAME", '')
         self.params['actuator_type'] = os.getenv("ACTUATOR_TYPE", '')
         self.params['actuator_command'] = os.getenv("ACTUATOR_COMMAND", '')
-        self.params['config_Filip'] = '' #dummy value
-    
-        # PID controller setup
-        self.PID = PIDcontroller.PID(self.params['Kp'],
-                                     self.params['Ti'],
-                                     self.params['Td'],
-                                     self.params['lim_low'],
-                                     self.params['lim_high'],
-                                     self.params['reverse_act'])
+        self.params['actuator_command_value'] = self.params['actuator_command'] + '_info'
+        self.params['service'] = os.getenv("FIWARE_SERVICE", '')
+        self.params['service_path'] = os.getenv("FIWARE_SERVICE_PATH", '')
+        self.params['cb_url'] = os.getenv("CB_URL", "http://localhost:1026")
 
-        # create filip config
-        self.CONFIG = filip.config.Config(self.params['config_Filip'])
-        # Create orion object
-        self.ORION_CB = filip.orion.Orion(self.CONFIG)
-        
+        # settings for security mode
+        self.security_mode = os.getenv("SECURITY_MODE", 'False').lower() in ('true', '1', 'yes')
+        self.params['token'] = (None, None)
+        # Get token from keycloak in security mode
+        if self.security_mode:
+            self.kp = KeycloakPython()
+            self.params['token'] = self.kp.get_access_token()
 
+        # Create simple pid instance
+        self.pid = PID(self.params['Kp'], self.params['Ki'], self.params['Kd'],
+                       setpoint=self.params['setpoint'],
+                       output_limits=(self.params['lim_low'], self.params['lim_upper'])
+                       )
+
+        # Additional parameters
+        self.auto_mode = True
+        self.u = None  # control variable u
+        self.y_act = self.params['setpoint']  # set the initial measurement to set point
+
+        # Create the fiware header
+        fiware_header = FiwareHeader(service=self.params['service'], service_path=self.params['service_path'])
+
+        # Create orion context broker client
+        self.ORION_CB = ContextBrokerClient(url=self.params['cb_url'], fiware_header=fiware_header)
 
     def create_entity(self):
         """Creates entitiy of PID controller in orion context broker"""
-        
-        if self.ORION_CB.get_entity(self.params['name']) is None:
-            
-            print('[INFO]: Create new PID entity')
-            
-            entity_dict = {"id":self.params['name'], "type":'PID_controller'}
-            for attr in ['Kp', 'Ti', 'Td', 'lim_low', 'lim_high', 'setpoint']:
-                entity_dict.update({attr:{'value':self.params[attr],'type':'Number'}})
-
-            entity_dict.update({'reverse_act':{'value':self.params['reverse_act'],'type':'Text'}})
-            
-            entity = filip.orion.Entity(entity_dict)#, attrs)
-
-            self.ORION_CB.post_entity(entity)
-            
-        else:
+        try:
+            self.ORION_CB.get_entity(entity_id=self.params['controller_name'],
+                                     entity_type=self.params['type'])
             print('Entity name already assigned')
-   
-    
-    
+        except requests.exceptions.HTTPError as err:
+            msg = err.args[0]
+            if "NOT FOUND" not in msg.upper():
+                raise  # throw other errors except "entity not found"
+            print('[INFO]: Create new PID entity')
+            pid_entity = ContextEntity(id=f"{self.params['controller_name']}",
+                                       type=self.params['type'])
+            cb_attrs = []
+            for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
+                cb_attrs.append(NamedContextAttribute(name=attr,
+                                                      type="Number",
+                                                      value=self.params[attr]))
+            pid_entity.add_attributes(attrs=cb_attrs)
+            self.ORION_CB.post_entity(entity=pid_entity, update=True)
+
     def update_params(self):
         """Read PID parameters of entity in context broker and updates PID control parameters"""
-        
-        # read parameters from context broker
-        for attr in ['Kp', 'Ti', 'Td', 'lim_low', 'lim_high', 'setpoint']:
-            self.params[attr] = float(self.ORION_CB.get_entity_attribute_value(entity_name=self.params['name'], attribute_name=attr))
-        self.params['reverse_act'] = str(self.ORION_CB.get_entity_attribute_value(entity_name=self.params['name'], attribute_name='reverse_act'))    
-        
+        # read PID parameters from context broker
+        for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
+            self.params[attr] = float(
+                self.ORION_CB.get_attribute_value(entity_id=self.params['controller_name'],
+                                                  entity_type=self.params['type'],
+                                                  attr_name=attr))
         # update PID parameters
-        self.PID.Kp = self.params['Kp']
-        self.PID.Ti = self.params['Ti']
-        self.PID.Td = self.params['Td']
-        self.PID.lim_low = self.params['lim_low']
-        self.PID.lim_high = self.params['lim_high']
-        self.PID.reverse_act = eval(eval(self.params['reverse_act']))
-        
-        
-        
+        self.pid.tunings = (self.params['Kp'], self.params['Ki'], self.params['Kd'])
+        self.pid.output_limits = (self.params['lim_low'], self.params['lim_upper'])
+        self.pid.setpoint = self.params['setpoint']
+        # read measured values from CB
+        try:
+            # read the current actuator value u (synchronize the value with the actuator)
+            self.u = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
+                                                       entity_type=self.params['actuator_type'],
+                                                       attr_name=self.params['actuator_command_value'])
+            if not isinstance(self.u, (int, float)):
+                self.u = None
+
+            # read the value of process variable y from sensor
+            y = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
+                                                  entity_type=self.params['sensor_type'],
+                                                  attr_name=self.params['sensor_attr'])
+            # set 0 if empty
+            if y == " ":
+                y = '0'
+            # convert to float
+            self.y_act = float(y)
+        except requests.exceptions.HTTPError as err:
+            msg = err.args[0]
+            if "NOT FOUND" not in msg.upper():
+                raise
+            self.auto_mode = False
+            print("Controller connection fails")
+        else:
+            # If no errors are raised
+            self.auto_mode = True
+
+        # Update the actual actuator value to allow warm star after interruption
+        self.pid.set_auto_mode(self.auto_mode, last_output=self.u)
+
     def run(self):
         """Calculation of PID output"""
-        
-        # read sensor value (actual value)
-        x = self.ORION_CB.get_entity_attribute_value(entity_name=self.params['sensor_entity_name'],
-                                                     attribute_name=self.params['sensor_attrs'])
-        # set 0 if empty
-        if x == '" "':
-            x = '0'
-        # convert to float
-        self.x_act = float(x)     
-        # calculate PID output
-        self.y = self.PID.run(x_act = self.x_act, x_set = self.params['setpoint'])
-        # send post command
-        self.ORION_CB.post_cmd_v1(self.params['actuator_entity_name'], 
-                                  self.params['actuator_type'],
-                                  self.params['actuator_command'], round(self.y,3))
+        try:
+            if self.auto_mode:  # if connection is good, auto_mode = True -> controller active
+                # calculate PID output
+                self.u = self.pid(self.y_act)
+                # build command
+                command = NamedCommand(name=self.params['actuator_command'], value=round(self.u, 3))
+                self.ORION_CB.post_command(entity_id=self.params['actuator_entity_name'],
+                                           entity_type=self.params['actuator_type'],
+                                           command=command)
+        except requests.exceptions.HTTPError as err:
+            msg = err.args[0]
+            if "NOT FOUND" not in msg.upper():
+                raise
+            self.auto_mode = False
+            print("Controller connection fails")
+
+    def update_token(self):
+        """
+        Update the token if necessary. Write the latest token into the
+        header of CB client.
+        """
+        token = self.kp.check_update_token_validity(input_token=self.params['token'], min_valid_time=60)
+        if all(token):  # if a valid token is returned
+            self.params['token'] = token
+        # Update the header with token
+        self.ORION_CB.headers.update(
+            {"Authorization": f"Bearer {self.params['token'][0]}"}
+        )
+
+    def control_loop(self):
+        """The control loop"""
+        try:
+            while True:
+                # Update token if run in security mode
+                if self.security_mode:
+                    self.update_token()
+                else:
+                    pass
+                self.update_params()
+                self.run()
+                time.sleep(self.params['pause_time'])
+        finally:
+            print("control loop fails")
+            os.abort()
 
 
-if __name__ == "__main__":  
-    # os.environ["CONFIG_FILE"] = "False"
-    # os.environ["ORION_HOST"] = "http://137.226.249.254"
-    # os.environ['FIWARE_SERVICE'] = "simple_iot"
-    # os.environ['FIWARE_SERVICE_PATH'] = "/"
-    # os.environ['SENSOR_ENTITY_NAME'] = "urn:ngsi-ld:Sensor:T1"
-    # os.environ['SENSOR_ATTRS'] = "urn:ngsi-ld:Measurement:Temperature"
-    # os.environ['ACTUATOR_ENTITY_NAME'] = "urn:ngsi-ld:Actuator:valve1"
-    # os.environ['ACTUATOR_TYPE'] = "Actuator"
-    # os.environ['ACTUATOR_COMMAND'] = "valveSet"   
-    
-    PID = Control()
-    PID.create_entity()
-
-    
-#PID.ORION_CB.update_attribute('PID_rh', 'setpoint', 298.15)  
-    while True:
-  #  for i in range(100): 
-        PID.update_params()
-        PID.run()
-        time.sleep(PID.params['pause_time']) 
+if __name__ == "__main__":
+    pid_controller = Control()
+    pid_controller.create_entity()
+    pid_controller.control_loop()

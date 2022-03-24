@@ -12,8 +12,9 @@ COPY --from=0 /app/FiLiP /app/FiLiP
 #COPY requirements.txt requirements.txt
 #RUN pip install -r requirements.txt
 RUN pip install -e /app/FiLiP
-RUN pip install simple-pid
-COPY ./PID4FIWARE.py /app/PID4FIWARE.py
-COPY ./keycloak_token_handler /app/keycloak_token_handler
+RUN pip install pysimpleguiweb && pip install --upgrade remi
+COPY ./ControllerPanel.py /app/ControllerPanel.py
 
-CMD [ "python", "./PID4FIWARE.py" ]
+EXPOSE 80
+
+CMD [ "python", "./ControllerPanel.py" ]
