@@ -66,8 +66,8 @@ class Control:
 
         # Additional parameters
         self.auto_mode = True
-        self.y = None
-        self.x_act = self.params['setpoint']  # set the initial measurement to set point
+        self.u = None  # control variable u
+        self.y_act = self.params['setpoint']  # set the initial measurement to set point
 
         # Create the fiware header
         fiware_header = FiwareHeader(service=self.params['service'], service_path=self.params['service_path'])
@@ -110,22 +110,22 @@ class Control:
         self.pid.setpoint = self.params['setpoint']
         # read measured values from CB
         try:
-            # read the current actuator value (synchronize the value with the actuator)
-            self.y = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
+            # read the current actuator value y (synchronize the value with the actuator)
+            self.u = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
                                                        entity_type=self.params['actuator_type'],
                                                        attr_name=self.params['actuator_command_value'])
-            if not isinstance(self.y, (int, float)):
-                self.y = None
+            if not isinstance(self.u, (int, float)):
+                self.u = None
 
-            # read the value of process variable from sensor
-            x = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
+            # read the value of process variable y from sensor
+            y = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
                                                   entity_type=self.params['sensor_type'],
                                                   attr_name=self.params['sensor_attr'])
             # set 0 if empty
-            if x == " ":
-                x = '0'
+            if y == " ":
+                y = '0'
             # convert to float
-            self.x_act = float(x)
+            self.y_act = float(y)
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
             if "NOT FOUND" not in msg.upper():
@@ -137,16 +137,16 @@ class Control:
             self.auto_mode = True
 
         # Update the actual actuator value to allow warm star after interruption
-        self.pid.set_auto_mode(self.auto_mode, last_output=self.y)
+        self.pid.set_auto_mode(self.auto_mode, last_output=self.u)
 
     def run(self):
         """Calculation of PID output"""
         try:
             if self.auto_mode:  # if connection is good, auto_mode = True -> controller active
                 # calculate PID output
-                self.y = self.pid(self.x_act)
+                self.u = self.pid(self.y_act)
                 # build command
-                command = NamedCommand(name=self.params['actuator_command'], value=round(self.y, 3))
+                command = NamedCommand(name=self.params['actuator_command'], value=round(self.u, 3))
                 self.ORION_CB.post_command(entity_id=self.params['actuator_entity_name'],
                                            entity_type=self.params['actuator_type'],
                                            command=command)

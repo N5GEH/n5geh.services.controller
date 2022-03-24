@@ -1,6 +1,8 @@
 ## PID4FIWARE
 
-The PID controller (proportional-integral-derivative controller) is commonly used in automation to control SISO (Single Input, Single Output) systems. The PID controller adjusts the control variable (e.g. a valve opening or heating power) to minimize the error between the process variable (e.g. volume flow or temperature) and a given setpoint.
+The PID controller (proportional-integral-derivative controller) is commonly used in automation to control SISO (Single Input, Single Output) systems. The PID controller adjusts the control variable *u* (e.g. a valve opening or heating power) to minimize the error between the process variable *y* (e.g. volume flow or temperature) and a given setpoint. A common control block is illustrated in the following figure ([*source*](https://en.wikipedia.org/wiki/PID_controller#/media/File:PID_en.svg)).
+
+![A process controlled by a PID controller](../Figures/PID.svg)
 
 PID4FIWARE provides a PID controller service that can control a system via the developed IoT plattform [n5geh](https://github.com/N5GEH/n5geh.platform). PID4FIWARE uses the [FiLiP](https://github.com/N5GEH/FiLiP) library to exchange data with the plattform, i.e. reading measurements from the sensor or sending commands to the actuator. The used PID controller is based on the public libary [simple-pid](https://pypi.org/project/simple-pid/).
 
