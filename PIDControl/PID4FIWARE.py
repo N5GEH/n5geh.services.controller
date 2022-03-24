@@ -8,9 +8,8 @@ Updated on Tue Mar 15 15:47:00 2022
 
 @author: jdu
 
-PID controller with Fiware interface & Web-based controller panel
+PID controller with Fiware interface
 """
-
 import time
 import os
 from simple_pid import PID
@@ -18,8 +17,6 @@ import requests
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import FiwareHeader
 from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
-import threading
-import PySimpleGUIWeb as sg
 from keycloak_token_handler.keycloak_python import KeycloakPython
 
 
@@ -28,12 +25,11 @@ class Control:
 
     def __init__(self):
         """Initialization"""
-        # use envirnment variables  
-        os.environ["CONFIG_FILE"] = "False"
-
+        # # use envirnment variables
+        # os.environ["CONFIG_FILE"] = "False"
         # define parameters
         self.params = {}
-        self.params['name'] = os.getenv("NAME", 'PID_1')
+        self.params['controller_name'] = os.getenv("CONTROLLER_NAME", 'PID_1')
         self.params['type'] = "PID_Controller"
         self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
         # reverse mode can be activated by passing negative tunings to controller
@@ -70,8 +66,8 @@ class Control:
 
         # Additional parameters
         self.auto_mode = True
-        self.y = None
-        self.x_act = self.params['setpoint']  # set the initial control value to set point
+        self.u = None  # control variable u
+        self.y_act = self.params['setpoint']  # set the initial measurement to set point
 
         # Create the fiware header
         fiware_header = FiwareHeader(service=self.params['service'], service_path=self.params['service_path'])
@@ -82,7 +78,7 @@ class Control:
     def create_entity(self):
         """Creates entitiy of PID controller in orion context broker"""
         try:
-            self.ORION_CB.get_entity(entity_id=self.params['name'],
+            self.ORION_CB.get_entity(entity_id=self.params['controller_name'],
                                      entity_type=self.params['type'])
             print('Entity name already assigned')
         except requests.exceptions.HTTPError as err:
@@ -90,7 +86,7 @@ class Control:
             if "NOT FOUND" not in msg.upper():
                 raise  # throw other errors except "entity not found"
             print('[INFO]: Create new PID entity')
-            pid_entity = ContextEntity(id=f'{self.params["name"]}',
+            pid_entity = ContextEntity(id=f"{self.params['controller_name']}",
                                        type=self.params['type'])
             cb_attrs = []
             for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
@@ -105,7 +101,7 @@ class Control:
         # read PID parameters from context broker
         for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
             self.params[attr] = float(
-                self.ORION_CB.get_attribute_value(entity_id=self.params['name'],
+                self.ORION_CB.get_attribute_value(entity_id=self.params['controller_name'],
                                                   entity_type=self.params['type'],
                                                   attr_name=attr))
         # update PID parameters
@@ -114,22 +110,22 @@ class Control:
         self.pid.setpoint = self.params['setpoint']
         # read measured values from CB
         try:
-            # read the current actuator value (synchronize the value with the actuator)
-            self.y = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
+            # read the current actuator value y (synchronize the value with the actuator)
+            self.u = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
                                                        entity_type=self.params['actuator_type'],
                                                        attr_name=self.params['actuator_command_value'])
-            if not isinstance(self.y, (int, float)):
-                self.y = None
+            if not isinstance(self.u, (int, float)):
+                self.u = None
 
-            # read the control value from sensor
-            x = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
+            # read the value of process variable y from sensor
+            y = self.ORION_CB.get_attribute_value(entity_id=self.params['sensor_entity_name'],
                                                   entity_type=self.params['sensor_type'],
                                                   attr_name=self.params['sensor_attr'])
             # set 0 if empty
-            if x == " ":
-                x = '0'
+            if y == " ":
+                y = '0'
             # convert to float
-            self.x_act = float(x)
+            self.y_act = float(y)
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
             if "NOT FOUND" not in msg.upper():
@@ -141,16 +137,16 @@ class Control:
             self.auto_mode = True
 
         # Update the actual actuator value to allow warm star after interruption
-        self.pid.set_auto_mode(self.auto_mode, last_output=self.y)
+        self.pid.set_auto_mode(self.auto_mode, last_output=self.u)
 
     def run(self):
         """Calculation of PID output"""
         try:
             if self.auto_mode:  # if connection is good, auto_mode = True -> controller active
                 # calculate PID output
-                self.y = self.pid(self.x_act)
+                self.u = self.pid(self.y_act)
                 # build command
-                command = NamedCommand(name=self.params['actuator_command'], value=round(self.y, 3))
+                command = NamedCommand(name=self.params['actuator_command'], value=round(self.u, 3))
                 self.ORION_CB.post_command(entity_id=self.params['actuator_entity_name'],
                                            entity_type=self.params['actuator_type'],
                                            command=command)
@@ -191,109 +187,7 @@ class Control:
             os.abort()
 
 
-class ControllerPanel:
-    def __init__(self):
-        # initialize controller parameters (in dict)
-        self.params = self.initialize_params()
-
-        # FIWARE parameters
-        self.cb_url = os.getenv("CB_URL", "http://localhost:1026")
-        self.entity_id = os.getenv("NAME", 'PID_1')
-        self.entity_type = "PID_Controller"
-        self.service = os.getenv("FIWARE_SERVICE", '')
-        self.service_path = os.getenv("FIWARE_SERVICE_PATH", '')
-
-        # Create the fiware header
-        fiware_header = FiwareHeader(service=self.service, service_path=self.service_path)
-
-        # Create orion context broker client
-        self.ORION_CB = ContextBrokerClient(url=self.cb_url, fiware_header=fiware_header)
-
-        # initialize gui window
-        sg.theme("DarkBlue")
-        param_bars = [
-            [sg.Text(param.capitalize(), size=(10, 1)), sg.InputText(self.params[param], key=param)]
-            for param in self.params.keys()
-        ]
-        buttons_bar = [[sg.Button("Send"), sg.Button("Read")]]
-        layout = param_bars + buttons_bar
-        self.window = sg.Window("PID controller", layout, web_port=80, web_start_browser=True)
-
-    def gui_update(self):
-        """Update the shown text on web GUI"""
-        for param in self.params.keys():
-            self.window[param].update(self.params[param])
-
-    def gui_loop(self):
-        """GUI main loop"""
-        try:
-            while True:
-                event, values = self.window.read(timeout=10)
-
-                if event in (sg.WINDOW_CLOSED, None):
-                    break
-                elif event == "Send":
-                    self.send(values)
-                elif event == "Read":
-                    print("Read", flush=True)
-                    self.read()
-        finally:
-            print("panel loop fails")
-            self.window.close()
-            os.abort()
-
-    def read(self):
-        """Read parameter values from context broker"""
-        try:
-            params_update = self.initialize_params()
-            for param in self.params.keys():
-                params_update[param] = float(self.ORION_CB.get_attribute_value(entity_id=self.entity_id,
-                                                                               entity_type=self.entity_type,
-                                                                               attr_name=param))
-            self.params = params_update
-        except requests.exceptions.HTTPError as err:
-            msg = err.args[0]
-            if "NOT FOUND" not in msg.upper():
-                raise
-            print("Cannot find controller entity")
-            self.params = self.initialize_params()
-        finally:
-            self.gui_update()
-
-    def send(self, params):
-        """Send new parameter values to context broker"""
-        for param in self.params.keys():
-            try:
-                value = float(params[param])
-                self.ORION_CB.update_attribute_value(entity_id=self.entity_id,
-                                                     entity_type=self.entity_type,
-                                                     attr_name=param,
-                                                     value=value)
-            except ValueError:
-                print(f"Wrong value type of {param}: {params[param]}. Must be numeric!")
-
-    @staticmethod
-    def initialize_params():
-        """Initialize the values of all control parameters"""
-        # initialize controller parameters shown on panel
-        params = {
-            "Kp": "Proportional gain",
-            "Ki": "Integral gain",
-            "Kd": "Derivative gain",
-            "lim_low": "Lower limit of output",
-            "lim_upper": "Upper limit of output",
-            "setpoint": "The set point of control variable"
-        }
-        return params
-
-
 if __name__ == "__main__":
     pid_controller = Control()
     pid_controller.create_entity()
-    panel = ControllerPanel()
-
-    # Parallelism with multi thread
-    th1 = threading.Thread(target=pid_controller.control_loop, daemon=False)
-    th2 = threading.Thread(target=panel.gui_loop, daemon=False)
-    th1.start()
-    th2.start()
+    pid_controller.control_loop()
