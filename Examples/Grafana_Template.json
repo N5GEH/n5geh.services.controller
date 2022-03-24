@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 5,
   "links": [],
   "panels": [
     {
@@ -41,6 +41,7 @@
         {
           "alias": "Heater power",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
           "pattern": "heater_power_info",
           "type": "number",
           "unit": "watt"
@@ -66,7 +67,7 @@
           "group": [],
           "metricColumn": "entity_type",
           "rawQuery": false,
-          "rawSql": "SELECT\n  timeinstant  AS \"time\",\n  entity_type AS metric,\n  heater_power_info \nFROM etheater\nORDER BY 1,2",
+          "rawSql": "SELECT\n  time_index  AS \"time\",\n  entity_type AS metric,\n  heater_power_info \nFROM etheater\nORDER BY 1,2",
           "refId": "A",
           "select": [
             [
@@ -79,7 +80,7 @@
             ]
           ],
           "table": "etheater",
-          "timeColumn": "timeinstant ",
+          "timeColumn": "time_index ",
           "where": []
         }
       ],
