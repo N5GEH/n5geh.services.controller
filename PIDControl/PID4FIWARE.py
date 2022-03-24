@@ -110,7 +110,7 @@ class Control:
         self.pid.setpoint = self.params['setpoint']
         # read measured values from CB
         try:
-            # read the current actuator value y (synchronize the value with the actuator)
+            # read the current actuator value u (synchronize the value with the actuator)
             self.u = self.ORION_CB.get_attribute_value(entity_id=self.params['actuator_entity_name'],
                                                        entity_type=self.params['actuator_type'],
                                                        attr_name=self.params['actuator_command_value'])
