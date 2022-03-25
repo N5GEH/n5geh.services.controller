@@ -11,13 +11,15 @@ Updated on Tue Mar 15 15:47:00 2022
 PID controller with Fiware interface
 """
 import time
+import datetime
 import os
 from simple_pid import PID
 import requests
-from filip.clients.ngsi_v2 import ContextBrokerClient
+from filip.clients.ngsi_v2 import ContextBrokerClient, QuantumLeapClient
 from filip.models.base import FiwareHeader
 from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
 from keycloak_token_handler.keycloak_python import KeycloakPython
+from Tuning import PIDTuning
 
 
 class Control:
@@ -49,6 +51,9 @@ class Control:
         self.params['service'] = os.getenv("FIWARE_SERVICE", '')
         self.params['service_path'] = os.getenv("FIWARE_SERVICE_PATH", '')
         self.params['cb_url'] = os.getenv("CB_URL", "http://localhost:1026")
+        self.params['ql_url'] = os.getenv("QL_URL", "http://localhost:1026")
+
+        # TODO Add a description as attribute?
 
         # settings for security mode
         self.security_mode = os.getenv("SECURITY_MODE", 'False').lower() in ('true', '1', 'yes')
@@ -74,6 +79,7 @@ class Control:
 
         # Create orion context broker client
         self.ORION_CB = ContextBrokerClient(url=self.params['cb_url'], fiware_header=fiware_header)
+        self.QL_CB = QuantumLeapClient(url=self.params['ql_url'], fiware_header=fiware_header)
 
     def create_entity(self):
         """Creates entitiy of PID controller in orion context broker"""
@@ -186,8 +192,98 @@ class Control:
             print("control loop fails")
             os.abort()
 
+    def step_response(self, stable_time=None, u_0=None, delta_u=None):
+        """
+        Conduct an open-loop step response.
+        """
+        print("Start step response", flush=True)
+        command = NamedCommand(name=self.params['actuator_command'], value=round(u_0, 3))
+        if self.security_mode:
+            self.update_token()
+        self.ORION_CB.post_command(entity_id=self.params['actuator_entity_name'],
+                                   entity_type=self.params['actuator_type'],
+                                   command=command)
+        print(f"Wait {stable_time} seconds until system stable", flush=True)
+        time.sleep(stable_time)
+
+        print("Send step signal now", flush=True)
+        command = NamedCommand(name=self.params['actuator_command'], value=round(u_0+delta_u, 3))
+        if self.security_mode:
+            self.update_token()
+        self.ORION_CB.post_command(entity_id=self.params['actuator_entity_name'],
+                                   entity_type=self.params['actuator_type'],
+                                   command=command)
+        print(f"Wait {stable_time} seconds until system stable", flush=True)
+        time.sleep(stable_time)
+        print("Step response finished", flush=True)
+
+    def get_history(self, start_time: str = None, end_time: str = None):
+        """
+        Get the history data of the actuator outputs and the sensor measurements
+        within the defined time window.
+
+        Parameters
+        ----------
+        start_time:
+            Start time of the history data in ISO 8061 format yyyy-mm-ddThh:mm:ss+timezone
+            Use the last 1 hour as default.
+        end_time:
+            End time of the history data in ISO 8061 format yyyy-mm-ddThh:mm:ss+timezone
+        Returns
+        -------
+            dict
+                dictionary that contains the attribute values and timestamps
+
+        """
+        if not start_time:
+            now = datetime.datetime.now()
+            start_time = (now - datetime.timedelta(hours=1)).astimezone().isoformat()
+        # TODO dose Quantum Leap needs a token?
+        history = self.QL_CB.get_entity_attr_values_by_id(
+            entity_id=self.params['sensor_entity_name'],
+            attr_name=self.params['sensor_attr'],
+            from_date=start_time,
+            to_date=end_time
+        )
+        return history.dict()
+
+    def auto_tuning(self):
+        """Tune the control parameters based on an open-loop step response"""
+        # Step response
+        start_time = datetime.datetime.now().astimezone().isoformat()
+        # TODO stable time, u0, delta_u, how to get these data? from input or hardcoded
+        stable_time = int(os.getenv("STABLE_TIME", '600'))  # stable time in seconds, 5 min by default
+        u_0 = self.params['lim_low'] + (self.params['lim_upper'] - self.params['lim_low']) * 0.2  # TODO need argument
+        delta_u = (self.params['lim_upper'] - self.params['lim_low']) * 0.5  # TODO need further consideration
+        self.step_response(stable_time=stable_time, u_0=u_0, delta_u=delta_u)
+        end_time = datetime.datetime.now().astimezone().isoformat()
+
+        # Read the time series data
+        history_dict = self.get_history(start_time=start_time, end_time=end_time)
+
+        # Calculate the control parameters
+        tuning = PIDTuning(history_dict=history_dict, u_0=u_0, delta_u=delta_u, stable_time=stable_time)
+        kp, ki, kd = tuning.tuning_haegglund()
+        print("Tuning finished", flush=True)
+        tuning_params = {"Kp": kp, "Ki": ki, "Kd": kd}
+        print(tuning_params, flush=True)
+        # TODO assign the calculated parameters directly to the controller?
+        # If in security mode, the token need to be updated
+        if self.security_mode:
+            self.update_token()
+        for attr in ['Kp', 'Ki', 'Kd']:
+            self.ORION_CB.update_attribute_value(entity_id=self.params["controller_name"],
+                                                 entity_type=self.params["type"],
+                                                 attr_name=attr,
+                                                 value=tuning_params[attr])
+
 
 if __name__ == "__main__":
     pid_controller = Control()
     pid_controller.create_entity()
+    # Activate the tuning process before
+    activate_tuning = os.getenv("ACTIVATE_TUNING", 'False').lower() in ('true', '1', 'yes')
+    if activate_tuning:
+        pid_controller.auto_tuning()
+    # Start control loop
     pid_controller.control_loop()
