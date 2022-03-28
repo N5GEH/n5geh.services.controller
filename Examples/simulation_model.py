@@ -26,6 +26,7 @@ class SimulationModel:
         temp_min: minimal ambient temperature in °C
         temp_start: initial zone temperature in °C
     """
+
     def __init__(self,
                  t_start: int = 0,
                  t_end: int = 24 * 60 * 60,
@@ -33,7 +34,6 @@ class SimulationModel:
                  temp_max: float = 10,
                  temp_min: float = -5,
                  temp_start: float = 20):
-
         self.t_start = t_start
         self.t_end = t_end
         self.dt = dt
@@ -41,11 +41,14 @@ class SimulationModel:
         self.temp_min = temp_min
         self.temp_start = temp_start
         self.ua = 120
-        self.c_p = 612.5 * 1000
-        self.q_h = 1000  # heating power
+        self.heat_transfer_heater = 100
+        self.c_p = 612.5 * 100
+        self.c_p_heater = 0.2 * self.c_p  # heat capacity of the heater
+        self.q_h = 2000  # heating power
         self.t_sim = self.t_start
         self.t_amb = temp_min
         self.t_zone = temp_start
+        self.t_heater = temp_start
         self.on_off: bool = True  # always turn on
 
     # define the function that returns a virtual ambient temperature depend from the
@@ -63,13 +66,18 @@ class SimulationModel:
             t_zone: zone temperature in °C
         """
         for t in range(self.t_sim, t_sim, self.dt):
+
+            self.t_heater = self.t_heater + \
+                            self.dt * (self.heat_transfer_heater * (self.t_zone - self.t_heater) +
+                                       self.on_off * self.q_h) / self.c_p_heater
+
             self.t_zone = self.t_zone + \
                           self.dt * (self.ua * (self.t_amb - self.t_zone) +
-                                     self.on_off * self.q_h) / self.c_p
+                                     self.heat_transfer_heater * (self.t_heater - self.t_zone)) / self.c_p
 
             self.t_amb = -(self.temp_max - self.temp_min) / 2 * \
-                    cos(2 * np.pi * t /(24 * 60 * 60)) + \
-                    self.temp_min + (self.temp_max - self.temp_min) / 2
+                         cos(2 * np.pi * t / (24 * 60 * 60)) + \
+                         self.temp_min + (self.temp_max - self.temp_min) / 2
 
         self.t_sim = t_sim
 

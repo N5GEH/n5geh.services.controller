@@ -14,6 +14,9 @@ from simulation_main import simulation
 
 # Main script
 if __name__ == '__main__':
+    # Give hints to turn off the controller
+    input("Turn off the controller, and press ENTER to start the first simulation")
+
     # Simulation without controller
     history_weather_station, history_zone_temperature_sensor, history_heater_power = \
         simulation(
@@ -38,7 +41,7 @@ if __name__ == '__main__':
     l2 = axs[0].plot(t_simulation, temperature, label="Zone Temperature")
     axs[0].set_xlabel('time in s')
     axs[0].set_ylabel('temperature in °C')
-    axs[0].set_ylim(-6, 25)
+    axs[0].set_ylim(-6, 30)
 
     ax2 = axs[0].twinx()
     t_simulation = [item["simtime"] for item in history_heater_power]
@@ -58,7 +61,7 @@ if __name__ == '__main__':
     fig1.show()
 
     # Give hints to turn on the controller
-    input("Turn on the controller, and press ENTER to continue")
+    input("Turn on the controller, and press ENTER to start the second simulation")
 
     # Simulation with pid4fiware
     history_weather_station, history_zone_temperature_sensor, history_heater_power = \
@@ -82,7 +85,7 @@ if __name__ == '__main__':
     l2 = axs[1].plot(t_simulation, temperature, label="Zone Temperature")
     axs[1].set_xlabel('time in s')
     axs[1].set_ylabel('temperature in °C')
-    axs[1].set_ylim(-6, 25)
+    axs[1].set_ylim(-6, 30)
 
     ax3 = axs[1].twinx()
     t_simulation = [item["simtime"] for item in history_heater_power]
