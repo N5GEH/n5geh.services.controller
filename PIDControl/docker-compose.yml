@@ -38,7 +38,7 @@ services:
       # Security settings
       - SECURITY_MODE=False  # set to True if activate security mode
       # Auto tuning
-      - ACTIVATE_TUNING=True  # If true, the control parameters will be tuned using a step response
+      - ACTIVATE_TUNING=False  # If true, the control parameters will be tuned using a step response
       - STABLE_TIME=300  # time in seconds to wait the step response until stable
     networks:
         - pid_control
