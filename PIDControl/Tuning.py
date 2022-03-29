@@ -8,39 +8,59 @@ class PIDTuning:
                  u_0: float = None,
                  delta_u: float = None,
                  stable_time: float = None):
+        """
+        Tune the PID control parameters based on the results of an
+        open-loop step response
+
+        Parameters
+        ----------
+        history_dict: dict
+            Dictionary of the historical data from QuantumLeapClient of FiLiP
+        u_0: float
+            Start point of the control variable
+        delta_u: float
+            Step width of the control variable
+        stable_time: float
+            Stable time (from experiment start till makes step,
+            and from making step till experiment ends)
+        """
+        # Get the timestamps and values from the history dict
         self.history_dict = history_dict
-        times_dt = history_dict["index"]  # elements are datetime objects
-        values_raw = history_dict["attributes"][0]["values"]
+        times_dt = self.history_dict["index"]  # elements are datetime objects
+        values_raw = self.history_dict["attributes"][0]["values"]
         times_raw = [time.mktime(d.timetuple()) + d.microsecond/1e6 for d in times_dt]
+
         # Drop values with the same time stamp
-        times, indices = np.unique(times_raw, return_index=True)  # time has the format of float64
-        values = [values_raw[i] for i in indices]
-        assert len(times) == len(values)
-        slopes = [0] + [(values[i+1]-values[i]) / (times[i+1]-times[i])
-                        for i in range(len(times)-1)]
+        self.times, indices = np.unique(times_raw, return_index=True)  # time has the format of float64
+        self.values = [values_raw[i] for i in indices]
+        assert len(self.times) == len(self.values)
+        slopes = [0] + [(self.values[i+1]-self.values[i]) / (self.times[i+1]-self.times[i])
+                        for i in range(len(self.times)-1)]
         self.slopes = slopes
+
         # Calculate the static gain K
-        t_start = times[0] + stable_time  # the start time of step
+        t_start = self.times[0] + stable_time  # the start time of step
         self.t_start = t_start
-        index_start = self.nearest(times, t_start)
-        delta_y = values[-1] - values[index_start]
+        index_start = self.nearest(self.times, t_start)
+        delta_y = self.values[-1] - self.values[index_start]
         self.K = delta_y / delta_u
-        # Find the point with the steepest slope
-        slope_steep = max(slopes)
-        index_steep = slopes.index(slope_steep)
+
         # Calculate the velocity gain Kv
+        slope_steep = max(slopes)  # Find the point with the steepest slope
+        index_steep = slopes.index(slope_steep)
         self.Kv = slope_steep / delta_u
+
         # Calculate the delay L
-        time_steep = times[index_steep]
+        time_steep = self.times[index_steep]
         self.L = (time_steep - t_start) -\
-                 (values[index_steep] - values[index_start]) / slope_steep
+                 (self.values[index_steep] - self.values[index_start]) / slope_steep
+
         # Calculate time constant T
-        value_63 = 0.63 * (values[-1] - values[index_start]) + values[index_start]
-        # values_temp = [abs(v - value_63) for v in values]
-        # index_63 = values_temp.index(min(values_temp))
-        index_63 = self.nearest(values, value_63)
-        time_63 = times[index_63]
+        value_63 = 0.63 * (self.values[-1] - self.values[index_start]) + self.values[index_start]
+        index_63 = self.nearest(self.values, value_63)
+        time_63 = self.times[index_63]
         self.T = time_63 - t_start - self.L
+
         print(f"K {self.K}, Kv {self.Kv}, L {self.L}, T {self.T}", flush=True)
 
     # def tuning_sanchis(self):

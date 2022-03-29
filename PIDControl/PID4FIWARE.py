@@ -281,9 +281,11 @@ class Control:
 if __name__ == "__main__":
     pid_controller = Control()
     pid_controller.create_entity()
-    # Activate the tuning process before
+
+    # Activate the tuning process before the control loop start
     activate_tuning = os.getenv("ACTIVATE_TUNING", 'False').lower() in ('true', '1', 'yes')
     if activate_tuning:
         pid_controller.auto_tuning()
+
     # Start control loop
     pid_controller.control_loop()
