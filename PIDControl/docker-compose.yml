@@ -25,7 +25,7 @@ services:
       - ACTUATOR_COMMAND=heater_power
       # Controller parameters
       - SETPOINT=20  # set point of the process variable
-      - PAUSE_TIME=0.1  # sampling time step
+      - PAUSE_TIME=0.5  # sampling time step
       - LIM_LOW=0  # lower limit of the actuator
       - LIM_UPPER=7000  # upper limit of the actuator
       # Tuning parameters, use negative values for reverse mode
