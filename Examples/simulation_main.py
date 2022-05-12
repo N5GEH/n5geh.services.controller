@@ -42,7 +42,7 @@ MQTT_PW = ""
 # FIWARE-Service
 SERVICE = 'controller'
 # FIWARE-Servicepath
-SERVICE_PATH = '/buildings'
+SERVICE_PATH = '/'
 
 APIKEY = SERVICE_PATH.strip('/')
 
