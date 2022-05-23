@@ -78,7 +78,9 @@ class Control:
         fiware_header = FiwareHeader(service=self.params['service'], service_path=self.params['service_path'])
 
         # Create orion context broker client
-        self.ORION_CB = ContextBrokerClient(url=self.params['cb_url'], fiware_header=fiware_header)
+        s = requests.Session()
+        self.ORION_CB = ContextBrokerClient(url=self.params['cb_url'], fiware_header=fiware_header,
+                                            session=s)
         self.QL_CB = QuantumLeapClient(url=self.params['ql_url'], fiware_header=fiware_header)
 
     def create_entity(self):
@@ -86,12 +88,12 @@ class Control:
         try:
             self.ORION_CB.get_entity(entity_id=self.params['controller_name'],
                                      entity_type=self.params['type'])
-            print('Entity name already assigned')
+            print('Entity name already assigned', flush=True)
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
             if "NOT FOUND" not in msg.upper():
                 raise  # throw other errors except "entity not found"
-            print('[INFO]: Create new PID entity')
+            print('[INFO]: Create new PID entity', flush=True)
             pid_entity = ContextEntity(id=f"{self.params['controller_name']}",
                                        type=self.params['type'])
             cb_attrs = []
@@ -137,7 +139,7 @@ class Control:
             if "NOT FOUND" not in msg.upper():
                 raise
             self.auto_mode = False
-            print("Controller connection fails")
+            print("Controller connection fails", flush=True)
         else:
             # If no errors are raised
             self.auto_mode = True
@@ -161,7 +163,7 @@ class Control:
             if "NOT FOUND" not in msg.upper():
                 raise
             self.auto_mode = False
-            print("Controller connection fails")
+            print("Controller connection fails", flush=True)
 
     def update_token(self):
         """
@@ -189,7 +191,7 @@ class Control:
                 self.run()
                 time.sleep(self.params['pause_time'])
         finally:
-            print("control loop fails")
+            print("control loop fails", flush=True)
             os.abort()
 
     def step_response(self, stable_time=None, u_0=None, delta_u=None):
