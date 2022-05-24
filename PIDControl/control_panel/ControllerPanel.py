@@ -21,7 +21,7 @@ class ControllerPanel:
         # FIWARE parameters
         self.cb_url = os.getenv("CB_URL", "http://localhost:1026")
         self.entity_id = None  # will be read on the web GUI
-        self.entity_type = "PID_Controller"
+        self.entity_type = "PIDController"
         self.service = os.getenv("FIWARE_SERVICE", '')
         self.service_path = os.getenv("FIWARE_SERVICE_PATH", '')
 
@@ -127,11 +127,11 @@ class ControllerPanel:
         """Initialize the values of all control parameters"""
         # initialize controller parameters shown on panel
         params = {
-            "Kp": "Proportional gain",
-            "Ki": "Integral gain",
-            "Kd": "Derivative gain",
-            "lim_low": "Lower limit of output",
-            "lim_upper": "Upper limit of output",
+            "kp": "Proportional gain",
+            "ki": "Integral gain",
+            "kd": "Derivative gain",
+            "limLower": "Lower limit of output",
+            "limUpper": "Upper limit of output",
             "setpoint": "The set point of control variable"
         }
         return params

@@ -42,9 +42,9 @@ MQTT_PW = ""
 # FIWARE-Service
 SERVICE = 'controller'
 # FIWARE-Servicepath
-SERVICE_PATH = '/buildings'
+SERVICE_PATH = '/'
 
-APIKEY = SERVICE_PATH.strip('/')
+APIKEY = "buildings"
 
 # Path to read json-files from previous exercises
 READ_GROUPS_FILEPATH = \
@@ -132,7 +132,7 @@ def simulation(
             client.get_encoder(PayloadProtocol.IOTA_JSON).decode_message(
                 msg=msg)
         # Update the heating power of the simulation model
-        sim_model.heater_power = payload["heater_power"]
+        sim_model.heater_power = payload["heaterPower"]
 
         # Acknowledge the command.
         client.publish(device_id=device_id,
@@ -217,7 +217,7 @@ def simulation(
             entity_type=heater.entity_type)
         history_heater_power.append(
             {"simtime": heater_entity.simtime.value,
-             "heater_power": sim_model.heater_power})
+             "heaterPower": sim_model.heater_power})
 
     # close the mqtt listening thread
     mqttc.loop_stop()

@@ -1,7 +1,7 @@
 [
   {
     "service": "controller",
-    "subservice": "/buildings",
+    "subservice": "/",
     "resource": "/iot/json",
     "apikey": "buildings",
     "timestamp": null,

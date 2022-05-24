@@ -10,7 +10,7 @@
     "explicitAttrs": false,
     "device_id": "device:001",
     "service": "controller",
-    "service_path": "/buildings",
+    "service_path": "/",
     "entity_name": "urn:ngsi-ld:WeatherStation:001",
     "entity_type": "WeatherStation",
     "lazy": [],
@@ -52,7 +52,7 @@
     "explicitAttrs": false,
     "device_id": "device:002",
     "service": "controller",
-    "service_path": "/buildings",
+    "service_path": "/",
     "entity_name": "urn:ngsi-ld:TemperatureSensor:001",
     "entity_type": "TemperatureSensor",
     "lazy": [],
@@ -93,13 +93,13 @@
     "explicitAttrs": false,
     "device_id": "device:003",
     "service": "controller",
-    "service_path": "/buildings",
+    "service_path": "/",
     "entity_name": "urn:ngsi-ld:Heater:001",
     "entity_type": "Heater",
     "lazy": [],
     "commands": [
       {
-        "name": "heater_power",
+        "name": "heaterPower",
         "type": "Number"
       }
     ],

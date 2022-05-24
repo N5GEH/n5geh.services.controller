@@ -13,7 +13,7 @@ services:
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
       - FIWARE_SERVICE=controller
-      - FIWARE_SERVICE_PATH=/buildings
+      - FIWARE_SERVICE_PATH=/
     networks:
       - pid_control
 networks:

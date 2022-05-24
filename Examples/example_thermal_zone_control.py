@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     ax2 = axs[0].twinx()
     t_simulation = [item["simtime"] for item in history_heater_power]
-    power = [item["heater_power"] for item in history_heater_power]
+    power = [item["heaterPower"] for item in history_heater_power]
     # find the index of first numeric element
     index_num = power.index(next(i for i in power if isinstance(i, (int, float))))
     l3 = ax2.plot(t_simulation[index_num:], power[index_num:], ":r", label="Heating Power")
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     ax3 = axs[1].twinx()
     t_simulation = [item["simtime"] for item in history_heater_power]
-    power = [item["heater_power"] for item in history_heater_power]
+    power = [item["heaterPower"] for item in history_heater_power]
     # find the index of first numeric element
     index_num = power.index(next(i for i in power if isinstance(i, (int, float))))
     l3 = ax3.plot(t_simulation[index_num:], power[index_num:], ":r", label="Heating Power")

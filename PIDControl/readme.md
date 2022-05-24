@@ -11,13 +11,13 @@ To manage the PID controller and modify the control parameters during operation,
 | Attribute Name | Description                         |
 |----------------|-------------------------------------|
 | setpoint       | Setpoint of the process variable    |
-| Kp             | Proportional gain of PID            |
-| Ki             | Integral gain of PID                |
-| Kd             | Deviation gain of PID               |
-| lim_low        | Lower limit of the control variable |
-| lim_upper      | Upper limit of the control variable |
+| kp             | Proportional gain of PID            |
+| ki             | Integral gain of PID                |
+| kd             | Deviation gain of PID               |
+| limLower        | Lower limit of the control variable |
+| limUpper      | Upper limit of the control variable |
 
-In other words, the control parameters are stored on the IoT platform, which can be adjusted by sending requests to the Orion context broker. Note that the reverse mode (reverse action, e.g. for cooling instead of heating) can be activated by assigning negative values to Kp, Ki, and Kd.
+In other words, the control parameters are stored on the IoT platform, which can be adjusted by sending requests to the Orion context broker. Note that the reverse mode (reverse action, e.g. for cooling instead of heating) can be activated by assigning negative values to kp, ki, and kd.
 
 Besides, in order to take measurements and actions, the entity name and the attribute name of the sensor device, as well as the entity name and the command name of the actuator device, have to be defined. This information, including the platform-specific information (e.g. context broker url), is passed to PID4FIWARE via environment variables. All the supported environment variables are shown below.
 
@@ -25,21 +25,21 @@ Besides, in order to take measurements and actions, the entity name and the attr
 |----------------------|-----------------------------------|------------------------------------------------------------|
 | CB_URL               | <http://host.docker.internal:1026>  | URL of the Orion context broker FROM INSIDE THE CONTAINER! |
 | FIWARE_SERVICE       | controller                        | Fiware service name                                        |
-| FIWARE_SERVICE_PATH  | /buildings                        | Fiware service path                                        |
+| FIWARE_SERVICE_PATH  | /                        | Fiware service path                                        |
 | CONTROLLER_NAME      | PID_example                       | Entity ID of the PID controller                            |
 | SENSOR_ENTITY_NAME   | urn:ngsi-ld:TemperatureSensor:001 | Entity ID of the sensor device                             |
 | SENSOR_TYPE          | TemperatureSensor                 | Entity type of the sensor device                           |
 | SENSOR_ATTR          | temperature                       | Attribute name of the process variable                     |
 | ACTUATOR_ENTITY_NAME | urn:ngsi-ld:Heater:001            | Entity ID of the actuator device                           |
 | ACTUATOR_TYPE        | Heater                            | Entity type of the actuator device                         |
-| ACTUATOR_COMMAND     | heater_power                      | Command name of the control variable                       |
+| ACTUATOR_COMMAND     | heaterPower                      | Command name of the control variable                       |
 | SETPOINT             | 20                                | Setpoint of the process variable                           |
 | PAUSE_TIME           | 0.1                               | Sampling time step                                         |
-| LIM_LOW              | 0                                 | Lower limit of the control variable                        |
+| LIM_LOWER              | 0                                 | Lower limit of the control variable                        |
 | LIM_UPPER            | 7000                              | Upper limit of the control variable                        |
-| KP                   | 200                               | Proportional gain Kp                                       |
-| KI                   | 50                                | Integral gain Ki                                      |
-| KD                   | 0                                 | Deviation gain Kd                                      |
+| KP                   | 200                               | Proportional gain kp                                       |
+| KI                   | 50                                | Integral gain ki                                      |
+| KD                   | 0                                 | Deviation gain kd                                      |
 | SECURITY_MODE        | False                             | Whether to use security mode                               |
 
 PID4FIWARE is virtualized in a [docker](www.docker.com) container. The virtualization makes it very simple to deploy.
@@ -98,7 +98,7 @@ Secondly, you must adjust the following three environment variables in `docker-c
 |----------------------|-----------------------------------|------------------------------------------------------------|
 | CB_URL               | <http://host.docker.internal:1026>  | URL of the Orion context broker FROM INSIDE THE CONTAINER! |
 | FIWARE_SERVICE       | controller                        | Fiware service name                                        |
-| FIWARE_SERVICE_PATH  | /buildings                        | Fiware service path                                        |
+| FIWARE_SERVICE_PATH  | /                        | Fiware service path                                        |
 
 Finally, the container can be started by:
 

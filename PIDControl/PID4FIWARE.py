@@ -20,6 +20,10 @@ from filip.models.base import FiwareHeader
 from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
 from keycloak_token_handler.keycloak_python import KeycloakPython
 from Tuning import PIDTuning
+# import logging
+# logging.basicConfig(
+#     level='DEBUG',
+#     format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
 class Control:
@@ -27,19 +31,17 @@ class Control:
 
     def __init__(self):
         """Initialization"""
-        # # use envirnment variables
-        # os.environ["CONFIG_FILE"] = "False"
         # define parameters
         self.params = {}
-        self.params['controller_name'] = os.getenv("CONTROLLER_NAME", 'PID_1')
-        self.params['type'] = "PID_Controller"
+        self.params['controller_name'] = os.getenv("CONTROLLER_NAME", 'PIDController:001')
+        self.params['type'] = "PIDController"
         self.params['setpoint'] = float(os.getenv("SETPOINT", '293.15'))
         # reverse mode can be activated by passing negative tunings to controller
-        self.params['Kp'] = float(os.getenv("KP", '1.0'))
-        self.params['Ki'] = float(os.getenv("KI", '0'))
-        self.params['Kd'] = float(os.getenv("KD", '0'))
-        self.params['lim_low'] = float(os.getenv("LIM_LOW", '0'))
-        self.params['lim_upper'] = float(os.getenv("LIM_UPPER", '100'))
+        self.params['kp'] = float(os.getenv("KP", '1.0'))
+        self.params['ki'] = float(os.getenv("KI", '0'))
+        self.params['kd'] = float(os.getenv("KD", '0'))
+        self.params['limLower'] = float(os.getenv("LIM_LOWER", '0'))
+        self.params['limUpper'] = float(os.getenv("LIM_UPPER", '100'))
         self.params['pause_time'] = float(os.getenv("PAUSE_TIME", 0.2))
         self.params['sensor_entity_name'] = os.getenv("SENSOR_ENTITY_NAME", '')
         self.params['sensor_type'] = os.getenv("SENSOR_TYPE", None)
@@ -60,13 +62,13 @@ class Control:
         self.params['token'] = (None, None)
         # Get token from keycloak in security mode
         if self.security_mode:
-            self.kp = KeycloakPython()
-            self.params['token'] = self.kp.get_access_token()
+            self.kcp = KeycloakPython()
+            self.params['token'] = self.kcp.get_access_token()
 
         # Create simple pid instance
-        self.pid = PID(self.params['Kp'], self.params['Ki'], self.params['Kd'],
+        self.pid = PID(self.params['kp'], self.params['ki'], self.params['kd'],
                        setpoint=self.params['setpoint'],
-                       output_limits=(self.params['lim_low'], self.params['lim_upper'])
+                       output_limits=(self.params['limLower'], self.params['limUpper'])
                        )
 
         # Additional parameters
@@ -97,7 +99,7 @@ class Control:
             pid_entity = ContextEntity(id=f"{self.params['controller_name']}",
                                        type=self.params['type'])
             cb_attrs = []
-            for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
+            for attr in ['kp', 'ki', 'kd', 'limLower', 'limUpper', 'setpoint']:
                 cb_attrs.append(NamedContextAttribute(name=attr,
                                                       type="Number",
                                                       value=self.params[attr]))
@@ -107,14 +109,14 @@ class Control:
     def update_params(self):
         """Read PID parameters of entity in context broker and updates PID control parameters"""
         # read PID parameters from context broker
-        for attr in ['Kp', 'Ki', 'Kd', 'lim_low', 'lim_upper', 'setpoint']:
+        for attr in ['kp', 'ki', 'kd', 'limLower', 'limUpper', 'setpoint']:
             self.params[attr] = float(
                 self.ORION_CB.get_attribute_value(entity_id=self.params['controller_name'],
                                                   entity_type=self.params['type'],
                                                   attr_name=attr))
         # update PID parameters
-        self.pid.tunings = (self.params['Kp'], self.params['Ki'], self.params['Kd'])
-        self.pid.output_limits = (self.params['lim_low'], self.params['lim_upper'])
+        self.pid.tunings = (self.params['kp'], self.params['ki'], self.params['kd'])
+        self.pid.output_limits = (self.params['limLower'], self.params['limUpper'])
         self.pid.setpoint = self.params['setpoint']
         # read measured values from CB
         try:
@@ -130,9 +132,10 @@ class Control:
                                                   entity_type=self.params['sensor_type'],
                                                   attr_name=self.params['sensor_attr'])
             # set 0 if empty
-            if y == " ":
+            if y == " " or not y:
                 y = '0'
             # convert to float
+            print(f"y = {y}.", flush=True)
             self.y_act = float(y)
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
@@ -170,7 +173,7 @@ class Control:
         Update the token if necessary. Write the latest token into the
         header of CB client.
         """
-        token = self.kp.check_update_token_validity(input_token=self.params['token'], min_valid_time=60)
+        token = self.kcp.check_update_token_validity(input_token=self.params['token'], min_valid_time=60)
         if all(token):  # if a valid token is returned
             self.params['token'] = token
         # Update the header with token
@@ -190,6 +193,8 @@ class Control:
                 self.update_params()
                 self.run()
                 time.sleep(self.params['pause_time'])
+        except Exception as ex:
+            raise ex
         finally:
             print("control loop fails", flush=True)
             os.abort()
@@ -255,8 +260,8 @@ class Control:
         start_time = datetime.datetime.now().astimezone().isoformat()
         # TODO stable time, u0, delta_u, how to get these data? from input or hardcoded
         stable_time = int(os.getenv("STABLE_TIME", '600'))  # stable time in seconds, 5 min by default
-        u_0 = self.params['lim_low'] + (self.params['lim_upper'] - self.params['lim_low']) * 0.2  # TODO need argument
-        delta_u = (self.params['lim_upper'] - self.params['lim_low']) * 0.5  # TODO need further consideration
+        u_0 = self.params['limLower'] + (self.params['limUpper'] - self.params['limLower']) * 0.2  # TODO need argument
+        delta_u = (self.params['limUpper'] - self.params['limLower']) * 0.5  # TODO need further consideration
         self.step_response(stable_time=stable_time, u_0=u_0, delta_u=delta_u)
         end_time = datetime.datetime.now().astimezone().isoformat()
 
@@ -267,13 +272,13 @@ class Control:
         tuning = PIDTuning(history_dict=history_dict, u_0=u_0, delta_u=delta_u, stable_time=stable_time)
         kp, ki, kd = tuning.tuning_haegglund()
         print("Tuning finished", flush=True)
-        tuning_params = {"Kp": kp, "Ki": ki, "Kd": kd}
+        tuning_params = {"kp": kp, "ki": ki, "kd": kd}
         print(tuning_params, flush=True)
         # TODO assign the calculated parameters directly to the controller?
         # If in security mode, the token need to be updated
         if self.security_mode:
             self.update_token()
-        for attr in ['Kp', 'Ki', 'Kd']:
+        for attr in ['kp', 'ki', 'kd']:
             self.ORION_CB.update_attribute_value(entity_id=self.params["controller_name"],
                                                  entity_type=self.params["type"],
                                                  attr_name=attr,

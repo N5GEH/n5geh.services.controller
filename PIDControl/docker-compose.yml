@@ -8,16 +8,16 @@ services:
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
       - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
-#      - ./PID4FIWARE.py:/app/PID4FIWARE.py
-#      - ./Tuning.py:/app/Tuning.py
+      - ./PID4FIWARE.py:/app/PID4FIWARE.py
+      - ./Tuning.py:/app/Tuning.py
     environment:
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
       - QL_URL=http://host.docker.internal:8668
       - FIWARE_SERVICE=controller
-      - FIWARE_SERVICE_PATH=/buildings
+      - FIWARE_SERVICE_PATH=/
       # Controller entity id
-      - CONTROLLER_NAME=PID_example
+      - CONTROLLER_NAME=PIDController:example
       # Sensor information
       - SENSOR_ENTITY_NAME=urn:ngsi-ld:TemperatureSensor:001
       - SENSOR_TYPE=TemperatureSensor
@@ -25,16 +25,16 @@ services:
       # Actuator information
       - ACTUATOR_ENTITY_NAME=urn:ngsi-ld:Heater:001
       - ACTUATOR_TYPE=Heater
-      - ACTUATOR_COMMAND=heater_power
+      - ACTUATOR_COMMAND=heaterPower
       # Controller parameters
       - SETPOINT=20  # set point of the process variable
       - PAUSE_TIME=0.5  # sampling time step
-      - LIM_LOW=0  # lower limit of the actuator
+      - LIM_LOWER=0  # lower limit of the actuator
       - LIM_UPPER=10000  # upper limit of the actuator
       # Tuning parameters, use negative values for reverse mode
-      - KP=200  # The value for the proportional gain Kp
+      - KP=200  # The value for the proportional gain kp
       - KI=50  # The value for the integral gain Ki
-      - KD=0  # The value for the derivative gain Kd
+      - KD=0  # The value for the derivative gain kd
       # Security settings
       - SECURITY_MODE=False  # set to True if activate security mode
       # Auto tuning
@@ -47,15 +47,15 @@ services:
     hostname: pidpanel
     image: pidpanel  # keep the same with your local image name
     restart: always
-#    volumes:
-#      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
+    volumes:
+      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     environment:
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
       - FIWARE_SERVICE=controller
-      - FIWARE_SERVICE_PATH=/buildings
+      - FIWARE_SERVICE_PATH=/
     networks:
       - pid_control
 networks:
