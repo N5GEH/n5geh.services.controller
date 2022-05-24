@@ -15,190 +15,313 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
+  "id": 3,
   "links": [],
   "panels": [
     {
-      "columns": [],
-      "datasource": "Controller",
-      "fontSize": "100%",
+      "datasource": "N5GEH_Tutorial",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "max": 40,
+          "min": -10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 4,
-        "w": 13,
+        "h": 7,
+        "w": 11,
         "x": 0,
         "y": 0
       },
-      "id": 6,
+      "id": 2,
       "links": [],
-      "pageSize": 2,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 0,
-        "desc": true
-      },
-      "styles": [
-        {
-          "alias": "Heater power",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 3,
-          "pattern": "heater_power_info",
-          "type": "number",
-          "unit": "watt"
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
         },
-        {
-          "alias": "time",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "time",
-          "thresholds": [],
-          "type": "date",
-          "unit": "short"
+        "tooltipOptions": {
+          "mode": "single"
         }
-      ],
+      },
+      "pluginVersion": "7.5.16",
       "targets": [
         {
-          "format": "table",
+          "format": "time_series",
           "group": [],
-          "metricColumn": "entity_type",
+          "metricColumn": "entity_id",
           "rawQuery": false,
-          "rawSql": "SELECT\n  time_index  AS \"time\",\n  entity_type AS metric,\n  heater_power_info \nFROM etheater\nORDER BY 1,2",
+          "rawSql": "SELECT\n  time_index  AS \"time\",\n  entity_id AS metric,\n  temperature\nFROM etweatherstation\nORDER BY 1,2",
           "refId": "A",
           "select": [
             [
               {
                 "params": [
-                  "heater_power_info "
+                  "temperature"
                 ],
                 "type": "column"
               }
             ]
           ],
-          "table": "etheater",
+          "table": "etweatherstation",
           "timeColumn": "time_index ",
           "where": []
         }
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Heater Power",
-      "transform": "table",
-      "type": "table"
+      "title": "Outdoor Temperature",
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Controller",
-      "fill": 1,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 8,
-        "w": 22,
-        "x": 0,
-        "y": 4
+        "h": 15,
+        "w": 12,
+        "x": 11,
+        "y": 0
       },
-      "id": 4,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
+      "id": 6,
+      "interval": "",
       "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.16",
       "targets": [
         {
           "format": "time_series",
           "group": [],
-          "metricColumn": "entity_type ",
+          "metricColumn": "entity_id",
           "rawQuery": false,
-          "rawSql": "SELECT\n  timeinstant  AS \"time\",\n  entity_type  AS metric,\n  temperature \nFROM ettemperaturesensor \nORDER BY 1,2",
+          "rawSql": "SELECT\n  time_index AS \"time\",\n  entity_id AS metric,\n  heaterpower_info AS \"heaterpower_info\"\nFROM etheater\nORDER BY 1,2",
           "refId": "A",
           "select": [
             [
               {
                 "params": [
-                  "temperature "
+                  "heaterpower_info"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "heaterpower_info"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "etheater",
+          "timeColumn": "time_index",
+          "where": []
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "HeaterPower",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": "N5GEH_Tutorial",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "max": 40,
+          "min": -10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 0,
+        "y": 7
+      },
+      "id": 7,
+      "links": [],
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.16",
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "entity_id",
+          "rawQuery": false,
+          "rawSql": "SELECT\n  time_index AS \"time\",\n  entity_id AS metric,\n  temperature\nFROM ettemperaturesensor \nORDER BY 1,2",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "temperature"
                 ],
                 "type": "column"
               }
             ]
           ],
           "table": "ettemperaturesensor ",
-          "timeColumn": "timeinstant ",
+          "timeColumn": "time_index",
           "where": []
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
-      "timeRegions": [],
       "timeShift": null,
-      "title": "Zone Temperature",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "celsius",
-          "label": null,
-          "logBase": 1,
-          "max": "40",
-          "min": "-10",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Indoor Temperature",
+      "type": "timeseries"
     }
   ],
-  "refresh": "5s",
-  "schemaVersion": 18,
+  "refresh": "10s",
+  "schemaVersion": 27,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -228,6 +351,6 @@
   },
   "timezone": "",
   "title": "FiwareController",
-  "uid": "KS-M0eYnL",
-  "version": 2
+  "uid": "_TaddLynz",
+  "version": 3
 }
