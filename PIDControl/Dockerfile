@@ -13,8 +13,9 @@ COPY --from=0 /app/FiLiP /app/FiLiP
 #RUN pip install -r requirements.txt
 RUN pip install -e /app/FiLiP
 RUN pip install simple-pid
-COPY ./PID4FIWARE.py /app/PID4FIWARE.py
-COPY ./Tuning.py /app/Tuning.py
+COPY ./Controller.py /app/Controller.py
 COPY ./keycloak_token_handler /app/keycloak_token_handler
+COPY PIDControl/PID4FIWARE.py /app/PID4FIWARE.py
+COPY PIDControl/config /app/config
 
 CMD [ "python", "./PID4FIWARE.py" ]

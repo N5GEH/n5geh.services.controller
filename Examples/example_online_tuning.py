@@ -20,6 +20,6 @@ if __name__ == '__main__':
         TEMPERATURE_ZONE_START=10,  # start value of the zone temperature
         T_SIM_START=0,  # simulation start time in seconds
         T_SIM_END=24 * 60 * 60,  # simulation end time in seconds
-        COM_STEP=5,  # 5 seconds communication step
+        COM_STEP=60*2,  # 5 seconds communication step
         SLEEP_TIME=0.5  # sleep 0.5 second between every simulation step
     )

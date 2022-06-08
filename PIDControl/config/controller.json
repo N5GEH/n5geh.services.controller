@@ -1,0 +1,34 @@
+{
+    "id": "PIDController:example",
+    "type": "PIDController",
+    "kd": {
+        "type": "Number",
+        "value": 0,
+        "metadata": {}
+    },
+    "ki": {
+        "type": "Number",
+        "value": 20,
+        "metadata": {}
+    },
+    "kp": {
+        "type": "Number",
+        "value": 2000,
+        "metadata": {}
+    },
+    "limLower": {
+        "type": "Number",
+        "value": 0,
+        "metadata": {}
+    },
+    "limUpper": {
+        "type": "Number",
+        "value": 7000,
+        "metadata": {}
+    },
+    "setpoint": {
+        "type": "Number",
+        "value": 20,
+        "metadata": {}
+    }
+}
