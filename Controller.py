@@ -1,19 +1,6 @@
 """
-The framework for controller under the context of FIWARE.
-
-Please note the following points:
-  1. For each concrete controller, the input and output structure should be the same
-  2. If the number of variables should change, new controller is needed
-  3. The declaration of variables happens in configure files
-
-Controller4Fiware is an abstract class. It contains several abstract methods, which
-must be implemented in a controller subclass. This script already gives recommended
-structures for these methods. However, the actual implementation can also be completely
-different.
-
-There are many TODOs in this script, which indicate the tasks that are required during
-the implementation.
-
+The framework for controller that interact with FIWARE.
+@author: jdu
 """
 import os.path
 import warnings
@@ -29,7 +16,24 @@ from keycloak_token_handler.keycloak_python import KeycloakPython
 
 
 class Controller4Fiware(ABC):
+    """
+    Controller4Fiware is an abstract class. It contains several abstract methods, which
+    must be implemented in a controller subclass. This script already gives recommended
+    structures for these methods.
+
+    There are several TODOs in this script, which indicate the tasks that are required during
+    the implementation.
+
+    Please note the following points:
+      1. For each type of concrete controller, the input and output structure should be the same
+      2. If the number of variables must change, a new controller type should be implemented
+      3. The declaration of variables happens in configure files
+    """
     def __init__(self, config_path=None):
+        """
+        Args:
+            config_path: the root path of the configuration files
+        """
         input_path = os.path.join(config_path, "input.json")
         output_path = os.path.join(config_path, "output.json")
         command_path = os.path.join(config_path, "command.json")
@@ -37,11 +41,12 @@ class Controller4Fiware(ABC):
 
         # Config file of the controller must contain the initial value of parameters
         self.controller_entity = parse_file_as(ContextEntity, controller_path)
+        # TODO check the command entity. All attributes should have the type "command".
         self.input_entities = parse_file_as(List[ContextEntity], input_path)
         self.output_entities = parse_file_as(List[ContextEntity], output_path)
         self.command_entities = parse_file_as(List[ContextEntity], command_path)
 
-        # TODO define external inputs, e.g. temperature forecast
+        # TODO define external inputs if any, e.g. temperature forecast
         # self.temp_forecast = None
 
         self.active = True  # the controller will be deactivated if set to False
@@ -91,6 +96,9 @@ class Controller4Fiware(ABC):
             {"Authorization": f"Bearer {self.token[0]}"})
 
     def read_controller_parameter(self):
+        """
+        Read the controller parameters from Fiware platform
+        """
         for _param in self.controller_entity.get_attributes():
             print(f"read {_param.name} from {self.controller_entity.id} with type {self.controller_entity.type}")
             _param.value = self.ORION_CB.get_attribute_value(entity_id=self.controller_entity.id,
@@ -99,6 +107,9 @@ class Controller4Fiware(ABC):
             self.controller_entity.update_attribute(attrs=[_param])
 
     def read_input_variable(self):
+        """
+        Read input variables from Fiware platform
+        """
         try:
             for entity in self.input_entities:
                 for _input in entity.get_attributes():
@@ -119,6 +130,12 @@ class Controller4Fiware(ABC):
             self.active = True
 
     def send_output_variable(self):
+        """
+        Send output variables to Fiware platform
+
+        NOTICE: output variables are normal attributes of context entities, which will not be forwarded to
+        devices
+        """
         try:
             for entity in self.output_entities:
                 for _output in entity.get_attributes():
@@ -136,6 +153,9 @@ class Controller4Fiware(ABC):
             print("Output entities/attributes not fond", flush=True)
 
     def send_commands(self):
+        """
+        Send commands to Fiware platform. The commands will be forwarded to the corresponding actuators.
+        """
         try:
             for entity in self.command_entities:
                 for _comm in entity.get_attributes():
@@ -153,6 +173,11 @@ class Controller4Fiware(ABC):
             print("Commands cannot be sent", flush=True)
 
     def create_controller_entity(self):
+        """
+        Create the controller entity while starting. The controller parameters and their initial values are
+        defined in the config/controller.json. The entity id and entity type of the controller are defined
+        in environment variables.
+        """
         try:
             controller_entity_exist = self.ORION_CB.get_entity(entity_id=self.controller_entity.id,
                                                                entity_type=self.controller_entity.type)
@@ -173,6 +198,14 @@ class Controller4Fiware(ABC):
             self.ORION_CB.post_entity(entity=self.controller_entity, update=True)
 
     def hold_sampling_time(self, start_time: float):
+        """
+        Wait in each control cycle until the sampling time (or cycle time) is up. If the algorithm takes
+        more time than the sampling time, a warning will be given.
+
+        Args:
+            start_time:
+
+        """
         if (time.time()-start_time) > self.sampling_time:
             warnings.warn("The processing time is longer than the sampling time. The sampling time must be increased!")
         while (time.time()-start_time) < self.sampling_time:
@@ -182,6 +215,10 @@ class Controller4Fiware(ABC):
 
     @abstractmethod
     def control_algorithm(self):
+        """
+        This abstract method must be implemented in subclass.
+        The outputs/commands are calculated in this method based on the current values of inputs and parameters.
+        """
         # calculate the output and commands base on the input, controller parameters and external input
         ...
 
@@ -199,7 +236,13 @@ class Controller4Fiware(ABC):
                 entity.update_attribute([_output])
 
     @abstractmethod
-    def control_loop(self):
+    def control_cycle(self):
+        """
+        This abstract method must be implemented in subclass.
+        This abstract method already defines a basic structure of the control cycle. Basically, all the following
+        invoked functions/methods should be used. Other functions/methods can also be added in the implementation
+        of the subclass.
+        """
         try:
             while True:
                 start_time = time.time()
@@ -211,11 +254,11 @@ class Controller4Fiware(ABC):
                 # update the input
                 self.read_input_variable()
 
-                # update the controller parameters
-                self.read_controller_parameter()
-
                 # get external input
                 ...  # TODO
+
+                # update the controller parameters
+                self.read_controller_parameter()
 
                 # execute only when the controller is activated
                 if self.active:

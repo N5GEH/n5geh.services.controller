@@ -1,9 +1,21 @@
-import os
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar  6 14:49:16 2019
+
+@author: aku
+
+Updated on Tue Mar 15 15:47:00 2022
+
+@author: jdu
+
+PID controller with Fiware interface
+"""
 import time
 from abc import ABC
 from Controller import Controller4Fiware
 from simple_pid import PID
 
+# For debugging
 # import logging
 # logging.basicConfig(
 #     level='DEBUG',
@@ -11,6 +23,9 @@ from simple_pid import PID
 
 
 class PID4Fiware(Controller4Fiware, ABC):
+    """
+    PID controller that interact with Fiware platform.
+    """
     def __init__(self):
         super().__init__(config_path="config")
 
@@ -30,10 +45,16 @@ class PID4Fiware(Controller4Fiware, ABC):
         self.y_set = None  # setpoint
 
     def match_variables(self):
+        """
+        Match the setpoint and measurement from the controller entity and the sensor entity.
+        """
         self.y_act = self.input_entities[0].get_attributes()[0].value
         self.y_set = self.controller_entity.setpoint.value
 
     def update_pid(self):
+        """
+        Update the instance of simple_pid controller instance.
+        """
         pid_dict = self.controller_entity.dict()
 
         # Update PID parameters
@@ -44,6 +65,9 @@ class PID4Fiware(Controller4Fiware, ABC):
         self.pid.setpoint = pid_dict['setpoint']['value']
 
     def control_algorithm(self):
+        """
+        Calculate PID output.
+        """
         # Calculate the output and commands base on the input, controller parameters and external input
         self.u = self.pid(self.y_act)
 
@@ -54,7 +78,11 @@ class PID4Fiware(Controller4Fiware, ABC):
                 _comm.value = self.u
                 entity.update_attribute([_comm])
 
-    def control_loop(self):
+    def control_cycle(self):
+        """
+        The control cycle of PID controller. Beside the basic structure defined in Controller4Fiware,
+        match_variables() and update_pid() are also invoked.
+        """
         try:
             while True:
                 start_time = time.time()
@@ -98,4 +126,4 @@ class PID4Fiware(Controller4Fiware, ABC):
 if __name__ == '__main__':
     pid_controller = PID4Fiware()
     pid_controller.create_controller_entity()
-    pid_controller.control_loop()
+    pid_controller.control_cycle()
