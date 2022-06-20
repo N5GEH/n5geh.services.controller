@@ -7,8 +7,8 @@ services:
     restart: always
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
-      - ./keycloak_token_handler/.env:/app/keycloak_token_handler/.env
-      - ./PID4FIWARE.py:/app/PID4FIWARE.py
+      - ../keycloak_token_handler/.env:/app/keycloak_token_handler/.env
+#      - ./PID4FIWARE.py:/app/PID4FIWARE.py
     environment:
       # Fiware platform information
       - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
@@ -28,8 +28,8 @@ services:
     hostname: pidpanel
     image: pidpanel  # keep the same with your local image name
     restart: always
-    volumes:
-      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
+#    volumes:
+#      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     environment:

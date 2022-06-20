@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
 
+# Call this Dockerfile in the upper directory: docker build -f PIDControl/Dockerfile --tag pid4fiware .
+
 # stage 0
 FROM alpine/git
 WORKDIR /app
