@@ -1,6 +1,6 @@
 # Examples of PID4FIWARE
 
-Here are some examples that can help you get familiar with PID4FIWARE.
+Here are two examples that can help you get familiar with PID4Fiware.
 
 ## Prerequisites
 
@@ -18,20 +18,22 @@ Here are some examples that can help you get familiar with PID4FIWARE.
 
 ## Starting Services
 
-Before starting up the services here, you need to ensure that the n5geh platform is running and you have access to it. If you host the platform on your local machine, you do not need to adjust the parameter settings of these examples. Otherwise, you will have to first change the environment parameters in `~\n5geh.services.controller\PIDControl\docker-compose.yml`, e.g. the URL of context broker `CB_URL`. For details about each parameter, please view the docker-compose file.
+Before starting up the services here, you need to ensure that the n5geh platform is running and you have access to it. If you host the platform on your local machine, you do not need to adjust the parameter settings of these examples. Otherwise, you will have to first change the environment parameters in `~\n5geh.services.controller\PIDControl\docker-compose.yml`, e.g. the URL of context broker `CB_URL`. For details about each parameter, please check [here](https://github.com/N5GEH/n5geh.services.controller/tree/master/PIDControl) and look into the docker-compose file.
 
-Then you can change your working directory to `~\n5geh.services.controller\PIDControl` and start the PID4FIWARE and a GUI control panel using the `docker compose` command:
+The controller services can be managed by the bash script `service` provided within this repository. The controller services can be created and then started with:
 
 ```bash
-cd \n5geh.services.controller\PIDControl
-docker compose up -d
+./service create
+./service start
 ```
+
+> **NOTE:** If the service is not executable, use `chmod 744 service` change the right
 
 If everything goes well, you should see two running containers right now.
 
 <img src="../Figures/Example_Containers.png" alt="Two runing containers" width="300"/>
 
-> **NOTE:** This `docker-compose.yml` should only be used for setting up these examples. For actual use, please refers to the instruction [here](https://github.com/N5GEH/n5geh.services.controller/tree/master/PIDControl).
+> **NOTE:** `service` invoke the `PIDControl/docker-compose.yml`, which is only designed to simplify the settings of these examples. For normal use, please refer to the instruction [here](https://github.com/N5GEH/n5geh.services.controller/tree/master/PIDControl).
 
 ## Example 1: Control a Virtual Thermal Zone with PID4FIWARE
 
@@ -39,10 +41,10 @@ In this example, a thermal zone is simulated by the model in `simulation_model.p
 
 This example aims to demonstrate the basic functionality of PID4FIWARE. Therefore, the thermal zone will be simulated twice under the same condition. In the first simulation, the heating power is fixed to 2 KW, while in the second one, the heating power should be controlled by PID4FIWARE.
 
-Run `example_thermal_zone_control.py` to start the simulations. You will receive a hint that tells you to turn off the controller, which can be done with:
+Run `example_thermal_zone_control.py` to start the simulations. You will receive a hint that asks you to turn off the controller. You can turn if off on Docker Desktop or in command line with:
 
 ```bash
-docker stop pid4fiware
+./service stop
 ```
 
 <img src="../Figures/Shutdown_Controller.png" alt="Turn off the controller" width="300"/>
@@ -50,7 +52,7 @@ docker stop pid4fiware
 Then you can continue with the first simulation. After that, you will be required to turn on the controller again.
 
 ```bash
-docker start pid4fiware
+./service start
 ```
 
 When the simulation is finished, the results are illustrated just as follows. It can be seen that PID4FIWARE did make a change to the virtual thermal zone.
