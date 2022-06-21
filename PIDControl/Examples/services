@@ -34,11 +34,11 @@ case "${command}" in
         ;;
 	"start")
 	  cd ..
-	  cd PIDControl
 	  ${dockerCmd} up -d
 		;;
 	"create")
 	  # build the pid controller image
+    cd ..
     cd ..
     docker build -f PIDControl/Dockerfile --tag pid4fiware .
 
@@ -48,7 +48,6 @@ case "${command}" in
 		;;
 	"stop")
 	  cd ..
-	  cd PIDControl
     ${dockerCmd} stop
 		;;
   "remove")
