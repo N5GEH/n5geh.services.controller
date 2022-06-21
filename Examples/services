@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+#  Command Line Interface to start all services associated with this Tutorial
+#
+#  For this tutorial the commands are merely a convenience script to run docker or docker compose
+#
+#  Each services script can be run using either docker-compose (the external tool with the hyphen -)
+#  or docker compose (the newer version directly bundled with Docker with a space )
+#
+#  if you start up with the following command:
+#
+#  ./services start legacy
+#
+# This will force the script to use docker-compose which may be more reliable in
+# some cases (or if an older version of Docker is being used)
+
+set -e
+
+dockerCmd="docker compose"
+if (( $# == 2 )); then
+    dockerCmd="docker-compose"
+fi
+
+if (( $# < 1 )); then
+    echo "Illegal number of parameters"
+    echo "usage: services [create|start|stop|remove]"
+    exit 1
+fi
+
+command="$1"
+case "${command}" in
+	"help")
+        echo "usage: services [create|start|stop|remove]"
+        ;;
+	"start")
+	  cd ..
+	  cd PIDControl
+	  ${dockerCmd} up -d
+		;;
+	"create")
+	  # build the pid controller image
+    cd ..
+    docker build -f PIDControl/Dockerfile --tag pid4fiware .
+
+    # build the controller panel image
+    cd PIDControl/control_panel
+    docker build --tag pidpanel .
+		;;
+	"stop")
+	  cd ..
+	  cd PIDControl
+    ${dockerCmd} stop
+		;;
+  "remove")
+    docker rm -f pid4fiware
+    docker rm -f pidpanel
+    ;;
+	*)
+		echo "Command not Found."
+		echo "usage: services [create|start|stop|remove]"
+		exit 127;
+		;;
+esac
