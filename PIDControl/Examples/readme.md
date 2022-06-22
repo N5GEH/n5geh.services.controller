@@ -27,7 +27,7 @@ The controller services can be managed by the bash script `service` provided wit
 ./service start
 ```
 
-> **NOTE:** If the service is not executable, use `chmod 744 service` change the right
+> **NOTE:** If the service is not executable, use `chmod 744 services` change the right
 
 If everything goes well, you should see two running containers right now.
 
