@@ -1,0 +1,25 @@
+[
+    {
+        "id": "urn:ngsi-ld:WeatherStation:001",
+        "type": "WeatherStation",
+        "temperatureForecast": {
+            "type": "Array",
+            "value": null,
+            "metadata": {}
+        }
+    },
+    {
+        "id": "urn:ngsi-ld:Room:001",
+        "type": "Room",
+        "temperature": {
+            "type": "Number",
+            "value": null,
+            "metadata": {}
+        },
+        "Humidity": {
+            "type": "Number",
+            "value": null,
+            "metadata": {}
+        }
+    }
+]

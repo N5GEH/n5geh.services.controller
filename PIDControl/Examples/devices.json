@@ -79,18 +79,6 @@
         "object_id": "t_zone"
       }
     ],
-    "static_attributes": [
-      {
-          "name": "measuredBy",
-          "type": "Relationship",
-          "value": "PID_1",
-          "link": {
-             "attributes": ["temperature"],
-             "name": "providedBy",
-             "type": "PID_Controller"
-          }
-        }
-    ],
     "internal_attributes": [],
     "ngsiVersion": "v2"
   },
@@ -111,7 +99,7 @@
     "lazy": [],
     "commands": [
       {
-        "name": "heater_power",
+        "name": "heaterPower",
         "type": "Number"
       }
     ],
