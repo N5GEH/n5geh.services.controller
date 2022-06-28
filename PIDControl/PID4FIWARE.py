@@ -60,8 +60,6 @@ class PID4Fiware(Controller4Fiware, ABC):
         # Update PID parameters
         self.pid.tunings = (pid_dict['kp']['value'], pid_dict['ki']['value'], pid_dict['kd']['value'])
         self.pid.output_limits = (pid_dict['limLower']['value'], pid_dict['limUpper']['value'])
-        print(f"the bounds of controller entity: {(pid_dict['limLower']['value'], pid_dict['limUpper']['value'])}", flush=True)
-        print(f"the bounds of controller: {self.pid.output_limits}", flush=True)
         self.pid.setpoint = pid_dict['setpoint']['value']
 
     def control_algorithm(self):
@@ -74,7 +72,7 @@ class PID4Fiware(Controller4Fiware, ABC):
         # For multiple outputs system, the best practice is to update the value of outputs/commands with following code
         for entity in self.command_entities:
             for _comm in entity.get_attributes():
-                print(f"calculate command {_comm.name} to id {entity.id} with type {entity.type}")
+                # print(f"calculate command {_comm.name} to id {entity.id} with type {entity.type}")
                 _comm.value = self.u
                 entity.update_attribute([_comm])
 

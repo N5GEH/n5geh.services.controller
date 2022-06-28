@@ -100,7 +100,7 @@ class Controller4Fiware(ABC):
         Read the controller parameters from Fiware platform
         """
         for _param in self.controller_entity.get_attributes():
-            print(f"read {_param.name} from {self.controller_entity.id} with type {self.controller_entity.type}")
+            # print(f"read {_param.name} from {self.controller_entity.id} with type {self.controller_entity.type}")
             _param.value = self.ORION_CB.get_attribute_value(entity_id=self.controller_entity.id,
                                                              entity_type=self.controller_entity.type,
                                                              attr_name=_param.name)
@@ -113,7 +113,7 @@ class Controller4Fiware(ABC):
         try:
             for entity in self.input_entities:
                 for _input in entity.get_attributes():
-                    print(f"read {_input.name} from id {entity.id} and type {entity.type}")
+                    # print(f"read {_input.name} from id {entity.id} and type {entity.type}")
                     _input.value = self.ORION_CB.get_attribute_value(entity_id=entity.id,
                                                                      entity_type=entity.type,
                                                                      attr_name=_input.name)
@@ -139,7 +139,7 @@ class Controller4Fiware(ABC):
         try:
             for entity in self.output_entities:
                 for _output in entity.get_attributes():
-                    print(f"update output {_output.name} of id {entity.id} with type {entity.type}")
+                    # print(f"update output {_output.name} of id {entity.id} with type {entity.type}")
                     self.ORION_CB.update_attribute_value(entity_id=entity.id,
                                                          attr_name=_output.name,
                                                          value=_output.value,
@@ -159,7 +159,7 @@ class Controller4Fiware(ABC):
         try:
             for entity in self.command_entities:
                 for _comm in entity.get_attributes():
-                    print(f"send command {_comm.name} to id {entity.id} with type {entity.type}")
+                    # print(f"send command {_comm.name} to id {entity.id} with type {entity.type}")
                     _comm = NamedCommand(**_comm.dict())
                     self.ORION_CB.post_command(entity_id=entity.id,
                                                entity_type=entity.type,
