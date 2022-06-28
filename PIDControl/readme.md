@@ -58,7 +58,7 @@ docker build -f PIDControl/Dockerfile --tag pid4fiware .
 
 After that, you should check the file `PIDControl/env.list` and set up the environment variables there properly.
 
-Most importantly, you must set up the entity information in `PIDControl/config/input.json` and `PIDControl/config/command.json`. The `id`, `type`, and the attribute name are the most important information and must be given correctly. Besides, you can also set initial values for the control parameters in `PIDControl/config/controller.json`. Then, you can run the image `pid4fiware` as a container:
+Most importantly, you must set up the entity information in `PIDControl/config/input.json` and `PIDControl/config/command.json`. The `id`, `type`, and the attribute name are the most important information and must be given correctly. Besides, you can also set initial values for the control parameters in `PIDControl/config/controller.json`. Then you can pass these configuration files into a docker volume with the following command: Then, you can run the image `pid4fiware` as a container:
 
 ```bash
 docker run -d \
@@ -68,6 +68,14 @@ docker run -d \
     --name pid_controller_1 \
     pid4fiware
 ```
+
+And then you must copy the configuration files you have just set into the container:
+
+```bash
+docker cp PIDControl/config pid_controller_1:app
+```
+
+> **NOTE:** The `pid_controller_1` from the above two commands is an example container name. It is recommended to name your container to something meaningful (e.g. `R2010_t_controller` for the temperature controller of room 2010).
 
 The second option is to use the online image on docker hub [here](https://hub.docker.com/r/dummy/pid4fiware) (note that this image may not always be updated):
 
