@@ -20,7 +20,7 @@ Controller4Fiware includes the fundamental functions that a controller requires 
 
 As shown in Figure 2, the control cycle begin with "Read Inputs". In this step, the controllers query the input variables, e.g. the measurements of sensors, from the FIWARE IoT platform. Then follows "Read External Inputs", in which the controller acquire input variables that come from external datasource, e.g. online weather forecast. In the next step, "Read Controller Parameters", the parameters of the controller, e.g. proportional gain kp of a PID controller, are read from the IoT platform. After that, the controller algorithm is executed in "Control Algorithm". The controller mainly calculated the commands and output variable (if any) based on the current input variables and controller parameters. In the last two steps "Send Outputs" and "Send Commands", the calculated outputs and commands are sent to the IoT platform. At the end of each control cycle, the controller will wait until the fixed sampling time is up. Thereafter, the next control cycle begins.
 
-![Overview of the control cycle](Figures/control_cycle.png)
+<img src="Figures/control_cycle.png" alt="Overview of the contro" width="600"/>
 
 ***Figure 2:*** *Overview of the control cycle*
 
