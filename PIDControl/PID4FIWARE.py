@@ -14,6 +14,7 @@ import time
 from abc import ABC
 from Controller import Controller4Fiware
 from simple_pid import PID
+import os
 
 # For debugging
 # import logging
@@ -27,7 +28,9 @@ class PID4Fiware(Controller4Fiware, ABC):
     PID controller that interact with Fiware platform.
     """
     def __init__(self):
-        super().__init__(config_path="config")
+        path_config = os.path.join(os.getcwd(), "config")
+        print(path_config)
+        super().__init__(config_path=path_config)
 
         # Create simple pid instance
         self.pid = PID(Kp=self.controller_entity.kp.value,

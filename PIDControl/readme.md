@@ -75,6 +75,8 @@ And then you must copy the configuration files you have just set into the contai
 docker cp PIDControl/config pid_controller_1:app
 ```
 
+Then the PID controller should now work properly.
+
 > **NOTE:** The `pid_controller_1` from the above two commands is an example container name. It is recommended to name your container to something meaningful (e.g. `R2010_t_controller` for the temperature controller of room 2010).
 
 The second option is to use the online image on docker hub [here](https://hub.docker.com/r/dummy/pid4fiware) (note that this image may not always be updated):
@@ -83,7 +85,10 @@ The second option is to use the online image on docker hub [here](https://hub.do
 currently not supported
 ```
 
-## Control Panel
+### Testing/Development
+For development or testing, the PID controller can also be started from the python console. The configuration file under `PIDControl/config` should first be set up correctly, and then `PID4FIWARE.py` can be run from the python console. However, the PID controller interacts with the local FIWARE platform by default (hostname=localhost). Otherwise, you need to manually change the default values of the FIWARE parameters in `Controller.py`.
+
+# Control Panel
 
 The control panel is a web-based GUI interface of the PID controllers. It simply reads/sends control parameters from the Orion context broker and displays the data in a user-friendly way. It must be addressed that this panel is mainly designed for demonstration and learning. It is not recommended to use this panel to interact with the deployed PID controller in real practice because **there is no guarantee for its reliability and functionality**.
 
