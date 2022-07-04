@@ -31,7 +31,7 @@ The controller services can be managed by the bash script `service` provided wit
 
 If everything goes well, you should see two running containers right now.
 
-<img src="../Figures/Example_Containers.png" alt="Two runing containers" width="300"/>
+<img src="../../Figures/Example_Containers.png" alt="Two runing containers" width="300"/>
 
 > **NOTE:** `service` invoke the `PIDControl/docker-compose.yml`, which is only designed to simplify the settings of these examples. For normal use, please refer to the instruction [here](https://github.com/N5GEH/n5geh.services.controller/tree/master/PIDControl).
 
@@ -47,7 +47,7 @@ Run `example_thermal_zone_control.py` to start the simulations. You will receive
 ./service stop
 ```
 
-<img src="../Figures/Shutdown_Controller.png" alt="Turn off the controller" width="300"/>
+<img src="../../Figures/Shutdown_Controller.png" alt="Turn off the controller" width="300"/>
 
 Then you can continue with the first simulation. After that, you will be required to turn on the controller again.
 
@@ -57,7 +57,7 @@ Then you can continue with the first simulation. After that, you will be require
 
 When the simulation is finished, the results are illustrated just as follows. It can be seen that PID4FIWARE did make a change to the virtual thermal zone.
 
-<img src="../Figures/Example_Result.png" alt="Example Results" width="400"/>
+<img src="../../Figures/Example_Result.png" alt="Example Results" width="400"/>
 
 As the next step, you may open the GUI control [panel](http://localhost:80) to simulate with different control parameters. Feel free to explore more!
 
@@ -78,7 +78,7 @@ After logging in, a `PostgreSQL` datasource must be set up [here](http://localho
 - **SSL Mode:** disable
 
 
-<img src="../Figures/Grafana_datasource.png" alt="Data source settings in Grafana" width="300"/>
+<img src="../../Figures/Grafana_datasource.png" alt="Data source settings in Grafana" width="300"/>
 
 Then you need to configure a dashboard to visualize the data. A configuration for this example can be loaded by importing `Grafana_Template.json` [here](http://localhost:3001/dashboard/import).
 
@@ -86,6 +86,6 @@ Then you need to configure a dashboard to visualize the data. A configuration fo
 
 Now you should be able to monitor the live change of the zone temperature and the heating power just like below.
 
-<img src="../Figures/Grafana_Dashboard.png" alt="Live monitoring in Grafana" width="600"/>
+<img src="../../Figures/Grafana_Dashboard.png" alt="Live monitoring in Grafana" width="600"/>
 
 You can now open the control [panel](http://localhost:80) and use your expertise with the PID controller to tune the control parameters!
