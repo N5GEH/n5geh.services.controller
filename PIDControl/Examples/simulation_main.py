@@ -4,12 +4,12 @@ This script is mainly based on the Exercise 5 of FiLiP. If you want to totally u
 please go through the exercises of FiLiP: https://github.com/N5GEH/FiLiP/tree/master/tutorials/ngsi_v2
 
 """
+import json
 from pathlib import Path
 import time
 from typing import List
 from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
-from pydantic import parse_file_as
 
 
 from filip.clients.ngsi_v2 import ContextBrokerClient, IoTAClient, QuantumLeapClient
@@ -74,8 +74,14 @@ def simulation(
                                 temp_start=TEMPERATURE_ZONE_START)
 
     # Create clients and restore devices and groups from files
-    groups = parse_file_as(List[ServiceGroup], READ_GROUPS_FILEPATH)
-    devices = parse_file_as(List[Device], READ_DEVICES_FILEPATH)
+    with open(READ_GROUPS_FILEPATH, "r") as f:
+        groups_dict = json.load(f)
+        groups = [ServiceGroup.model_validate(group_dict)
+                  for group_dict in groups_dict]
+    with open(READ_DEVICES_FILEPATH, "r") as f:
+        devices_dict = json.load(f)
+        devices = [Device.model_validate(device_dict)
+                   for device_dict in devices_dict]
     cbc = ContextBrokerClient(url=CB_URL, fiware_header=fiware_header)
     iotac = IoTAClient(url=IOTA_URL, fiware_header=fiware_header)
     iotac.post_groups(service_groups=groups, update=True)
