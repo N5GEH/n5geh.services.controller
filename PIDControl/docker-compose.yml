@@ -1,9 +1,11 @@
 version: '3.8'
 services:
-  PID:
+  pid:
     container_name: pid4fiware
     hostname: pid4fiware
-    image: pid4fiware  # keep the same with your local image name
+    build:
+      context: ../
+      dockerfile: ./PIDControl/Dockerfile
     restart: always
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
@@ -23,10 +25,12 @@ services:
       - SECURITY_MODE=False  # set to True if activate security mode
     networks:
       - pid_control
-  Panel:
+  panel:
     container_name: pidpanel
     hostname: pidpanel
-    image: pidpanel  # keep the same with your local image name
+    build:
+      context: ./control_panel
+      dockerfile: Dockerfile
     restart: always
 #    volumes:
 #      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
