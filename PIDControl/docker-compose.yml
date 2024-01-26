@@ -10,19 +10,22 @@ services:
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
       - ../keycloak_token_handler/.env:/app/keycloak_token_handler/.env
+      - ./config:/app/config
 #      - ./PID4FIWARE.py:/app/PID4FIWARE.py
-    environment:
-      # Fiware platform information
-      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
-      - QL_URL=http://host.docker.internal:8668
-      - FIWARE_SERVICE=controller
-      - FIWARE_SERVICE_PATH=/
-      - SAMPLING_TIME=1
-      # Controller id and type
-      - CONTROLLER_ENTITY_ID=urn:ngsi-ld:PIDController:001
-      - CONTROLLER_ENTITY_TYPE=PIDController
-      # Security settings
-      - SECURITY_MODE=False  # set to True if activate security mode
+    env_file:
+      - env.list
+#    environment:
+#      # Fiware platform information
+#      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
+#      - QL_URL=http://host.docker.internal:8668
+#      - FIWARE_SERVICE=controller
+#      - FIWARE_SERVICE_PATH=/
+#      - SAMPLING_TIME=1
+#      # Controller id and type
+#      - CONTROLLER_ENTITY_ID=urn:ngsi-ld:PIDController:001
+#      - CONTROLLER_ENTITY_TYPE=PIDController
+#      # Security settings
+#      - SECURITY_MODE=False  # set to True if activate security mode
     networks:
       - pid_control
   panel:
@@ -36,11 +39,13 @@ services:
 #      - ./control_panel/ControllerPanel.py:/app/ControllerPanel.py
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
-    environment:
-      # Fiware platform information
-      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
-      - FIWARE_SERVICE=controller
-      - FIWARE_SERVICE_PATH=/
+    env_file:
+      - env.list
+#    environment:
+#      # Fiware platform information
+#      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
+#      - FIWARE_SERVICE=controller
+#      - FIWARE_SERVICE_PATH=/
     networks:
       - pid_control
 networks:
