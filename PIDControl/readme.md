@@ -37,6 +37,24 @@ Except the information about the sensor and actuator, some other information mus
 | CONTROLLER_ENTITY_TYPE | PIDController                      | Entity Type of the PID controller (no need to modify)      |
 | SAMPLING_TIME          | 1                                  | Sampling time of the controller in second                  |
 | SECURITY_MODE          | False                              | Whether to use security mode                               |
+### Quick Start
+Containers can be easily deployed with the ``docker-compose.yml`` file.
+
+**Download repo**
+```bash
+git clone https://github.com/N5GEH/n5geh.services.controller.git
+cd n5geh.services.controller
+cd PIDControl
+```
+**Build images**
+```bash
+docker compose build
+```
+**Start containers**
+```bash
+docker compose up -d
+```
+> **NOTE:** This section demonstrates a quick deployment. It should be straight forward for docker experts. For more general deployment and docker beginner, please refer to **Deployment** section below.
 
 ### Deployment
 
@@ -46,7 +64,6 @@ The first option is to build an image locally. You need to clone this repository
 
 ```bash
 git clone https://github.com/N5GEH/n5geh.services.controller.git
-
 cd n5geh.services.controller
 ```
 
@@ -60,19 +77,16 @@ After that, you should check the file `PIDControl/env.list` and set up the envir
 
 Most importantly, you must set up the entity information in `PIDControl/config/input.json` and `PIDControl/config/command.json`. The `id`, `type`, and the attribute name are the most important information and must be given correctly. Besides, you can also set initial values for the control parameters in `PIDControl/config/controller.json`. Then you can pass these configuration files into a docker volume with the following command: Then, you can run the image `pid4fiware` as a container:
 
+After that you can start the containers:
+
 ```bash
 docker run -d \
-    --env-file PIDControl/env.list \
-    --volume "$(pwd)/keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
+    --env-file env.list \
+    --volume "../keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
+    --volume "./config:/app/config"
     --restart always \
     --name pid_controller_1 \
     pid4fiware
-```
-
-And then you must copy the configuration files you have just set into the container:
-
-```bash
-docker cp PIDControl/config pid_controller_1:app
 ```
 
 Then the PID controller should now work properly.
