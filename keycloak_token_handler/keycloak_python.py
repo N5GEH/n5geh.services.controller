@@ -32,7 +32,7 @@ class KeycloakPython:
         try:
             if self.keycloak_host and self.client_id and self.client_secret:
                 headers = {"content-type": "application/x-www-form-urlencoded"}
-                access_data = requests.post(self.keycloak_host, data=self.data, headers=headers)
+                access_data = requests.post(self.keycloak_host, data=self.data, headers=headers, verify=False)
                 if access_data.ok:
                     current_time = datetime.now(timezone.utc)
                     self.expires_in = current_time + timedelta(seconds=int(access_data.json()['expires_in']))

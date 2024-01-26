@@ -2,6 +2,7 @@
 The framework for controller that interact with FIWARE.
 @author: jdu
 """
+import json
 import os.path
 import warnings
 from abc import ABC, abstractmethod
@@ -35,16 +36,28 @@ class Controller4Fiware(ABC):
             config_path: the root path of the configuration files
         """
         input_path = os.path.join(config_path, "input.json")
+        with open(input_path, "r") as f:
+            input_list = json.load(f)
         output_path = os.path.join(config_path, "output.json")
+        with open(output_path, "r") as f:
+            output_list = json.load(f)
         command_path = os.path.join(config_path, "command.json")
+        with open(command_path, "r") as f:
+            command_list = json.load(f)
         controller_path = os.path.join(config_path, "controller.json")
+        with open(controller_path, "r") as f:
+            controller_dict = json.load(f)
 
         # Config file of the controller must contain the initial value of parameters
-        self.controller_entity = parse_file_as(ContextEntity, controller_path)
+        self.controller_entity = ContextEntity.model_validate(controller_dict)
         # TODO check the command entity. All attributes should have the type "command".
-        self.input_entities = parse_file_as(List[ContextEntity], input_path)
-        self.output_entities = parse_file_as(List[ContextEntity], output_path)
-        self.command_entities = parse_file_as(List[ContextEntity], command_path)
+
+        self.input_entities = [ContextEntity.model_validate(entity)
+                               for entity in input_list]
+        self.output_entities = [ContextEntity.model_validate(entity)
+                                for entity in output_list]
+        self.command_entities = [ContextEntity.model_validate(entity)
+                                 for entity in command_list]
 
         # TODO define external inputs if any, e.g. temperature forecast
         # self.temp_forecast = None
@@ -54,7 +67,7 @@ class Controller4Fiware(ABC):
         # Read from ENV
         self.sampling_time = float(os.getenv("SAMPLING_TIME", 0.5))
         assert self.sampling_time >= 0.1, "Controller sampling time must be larger than 0.1 sec"
-        controller_entity_dict = self.controller_entity.dict()
+        controller_entity_dict = self.controller_entity.model_dump()
         controller_entity_dict["id"] = os.getenv("CONTROLLER_ENTITY_ID", "urn:ngsi-ld:Controller:001")
         controller_entity_dict["type"] = os.getenv("CONTROLLER_ENTITY_TYPE", "Controller")
         self.controller_entity = ContextEntity(**controller_entity_dict)

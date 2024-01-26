@@ -1,0 +1,2 @@
+pysimpleguiweb==0.39.0
+filip~=0.3.0
