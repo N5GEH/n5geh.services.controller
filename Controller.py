@@ -11,7 +11,6 @@ from filip.clients.ngsi_v2 import ContextBrokerClient, QuantumLeapClient
 from filip.models.base import FiwareHeader
 from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
 from typing import Any, Dict, Optional, List, Union
-from pydantic import parse_file_as
 import time
 from keycloak_token_handler.keycloak_python import KeycloakPython
 
