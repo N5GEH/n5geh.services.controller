@@ -13,7 +13,7 @@ services:
       - ./config:/app/config
 #      - ./PID4FIWARE.py:/app/PID4FIWARE.py
     env_file:
-      - env.list
+      - .env
 #    environment:
 #      # Fiware platform information
 #      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
@@ -40,7 +40,7 @@ services:
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     env_file:
-      - env.list
+      - .env
 #    environment:
 #      # Fiware platform information
 #      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost

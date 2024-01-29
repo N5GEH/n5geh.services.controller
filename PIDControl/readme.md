@@ -73,7 +73,7 @@ Then you can build the image using the `docker build` command:
 docker build -f PIDControl/Dockerfile --tag pid4fiware .
 ```
 
-After that, you should check the file `PIDControl/env.list` and set up the environment variables there properly.
+After that, you should create a file `PIDControl/.env` and set up the environment variables there properly. An example of this file is already given as `PIDControl/.env.EXAMPLE`.
 
 Most importantly, you must set up the entity information in `PIDControl/config/input.json` and `PIDControl/config/command.json`. The `id`, `type`, and the attribute name are the most important information and must be given correctly. Besides, you can also set initial values for the control parameters in `PIDControl/config/controller.json`. Then you can pass these configuration files into a docker volume with the following command: Then, you can run the image `pid4fiware` as a container:
 
@@ -81,7 +81,7 @@ After that you can start the containers:
 
 ```bash
 docker run -d \
-    --env-file env.list \
+    --env-file .env \
     --volume "../keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
     --volume "./config:/app/config"
     --restart always \
