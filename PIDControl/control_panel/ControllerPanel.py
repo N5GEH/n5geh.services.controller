@@ -11,6 +11,14 @@ import requests
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import FiwareHeader
 import PySimpleGUIWeb as sg
+import logging
+
+# Get log level from environment variable, default to INFO if not set
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+
+# Configure logging
+logging.basicConfig(level=log_level,
+                    format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
 class ControllerPanel:
@@ -110,7 +118,7 @@ class ControllerPanel:
                                                      attr_name=param,
                                                      value=value)
             except ValueError:
-                print(f"Wrong value type of {param}: {params[param]}. Must be numeric!")
+                logging.debug(f"Wrong value type of {param}: {params[param]}. Must be numeric!")
 
     def refresh_list(self):
         """Refresh the controller list"""
