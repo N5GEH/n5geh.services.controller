@@ -12,10 +12,8 @@ services:
       - ../keycloak_token_handler/.env:/app/keycloak_token_handler/.env
       - ./config:/app/config
 #      - ./PID4FIWARE.py:/app/PID4FIWARE.py
-    logging:
-      driver: none
     env_file:
-      - env.list
+      - .env
 #    environment:
 #      # Fiware platform information
 #      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
@@ -33,8 +31,6 @@ services:
   panel:
     container_name: pidpanel
     hostname: pidpanel
-    logging:
-      driver: none
     build:
       context: ./control_panel
       dockerfile: Dockerfile
@@ -44,7 +40,7 @@ services:
     ports:
       - "80:80"  # use other port, e.g. "3000:80", if port 80 is already allocated
     env_file:
-      - env.list
+      - .env
 #    environment:
 #      # Fiware platform information
 #      - CB_URL=http://host.docker.internal:1026  # host.docker.internal in the container maps up with the localhost
