@@ -9,10 +9,18 @@ from abc import ABC, abstractmethod
 import requests
 from filip.clients.ngsi_v2 import ContextBrokerClient, QuantumLeapClient
 from filip.models.base import FiwareHeader
-from filip.models.ngsi_v2.context import NamedCommand, ContextEntity, NamedContextAttribute
-from typing import Any, Dict, Optional, List, Union
+from filip.models.ngsi_v2.context import NamedCommand, ContextEntity
 import time
 from keycloak_token_handler.keycloak_python import KeycloakPython
+import os
+import logging
+
+# Get log level from environment variable, default to INFO if not set
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+
+# Configure logging
+logging.basicConfig(level=log_level,
+                    format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
 class Controller4Fiware(ABC):
@@ -112,7 +120,7 @@ class Controller4Fiware(ABC):
         Read the controller parameters from Fiware platform
         """
         for _param in self.controller_entity.get_attributes():
-            # print(f"read {_param.name} from {self.controller_entity.id} with type {self.controller_entity.type}")
+            # logging.debug(f"read {_param.name} from {self.controller_entity.id} with type {self.controller_entity.type}")
             _param.value = self.ORION_CB.get_attribute_value(entity_id=self.controller_entity.id,
                                                              entity_type=self.controller_entity.type,
                                                              attr_name=_param.name)
@@ -125,7 +133,7 @@ class Controller4Fiware(ABC):
         try:
             for entity in self.input_entities:
                 for _input in entity.get_attributes():
-                    # print(f"read {_input.name} from id {entity.id} and type {entity.type}")
+                    # logging.debug(f"read {_input.name} from id {entity.id} and type {entity.type}")
                     _input.value = self.ORION_CB.get_attribute_value(entity_id=entity.id,
                                                                      entity_type=entity.type,
                                                                      attr_name=_input.name)
@@ -135,8 +143,8 @@ class Controller4Fiware(ABC):
             if "NOT FOUND" not in msg.upper():
                 raise
             self.active = False
-            print(msg)
-            print("Input entities/attributes not fond, controller stop", flush=True)
+            logging.error(msg)
+            logging.error("Input entities/attributes not fond, controller stop")
         else:
             # if no error
             self.active = True
@@ -145,13 +153,13 @@ class Controller4Fiware(ABC):
         """
         Send output variables to Fiware platform
 
-        NOTICE: output variables are normal attributes of context entities, which will not be forwarded to
-        devices
+        NOTICE: output variables are normal attributes of context entities,
+        which will not be forwarded to devices
         """
         try:
             for entity in self.output_entities:
                 for _output in entity.get_attributes():
-                    # print(f"update output {_output.name} of id {entity.id} with type {entity.type}")
+                    # logging.debug(f"update output {_output.name} of id {entity.id} with type {entity.type}")
                     self.ORION_CB.update_attribute_value(entity_id=entity.id,
                                                          attr_name=_output.name,
                                                          value=_output.value,
@@ -161,8 +169,8 @@ class Controller4Fiware(ABC):
             if "NOT FOUND" not in msg.upper():
                 raise
             self.active = False
-            print(msg)
-            print("Output entities/attributes not fond", flush=True)
+            logging.error(msg)
+            logging.error("Output entities/attributes not fond, controller stop")
 
     def send_commands(self):
         """
@@ -171,7 +179,7 @@ class Controller4Fiware(ABC):
         try:
             for entity in self.command_entities:
                 for _comm in entity.get_attributes():
-                    # print(f"send command {_comm.name} to id {entity.id} with type {entity.type}")
+                    # logging.debug(f"send command {_comm.name} to id {entity.id} with type {entity.type}")
                     _comm = NamedCommand(**_comm.dict())
                     self.ORION_CB.post_command(entity_id=entity.id,
                                                entity_type=entity.type,
@@ -181,8 +189,8 @@ class Controller4Fiware(ABC):
             if "NOT FOUND" not in msg.upper():
                 raise
             self.active = False
-            print(msg)
-            print("Commands cannot be sent", flush=True)
+            logging.error(msg)
+            logging.error("Commands  cannot be sent, controller stop")
 
     def create_controller_entity(self):
         """
@@ -193,20 +201,24 @@ class Controller4Fiware(ABC):
         try:
             controller_entity_exist = self.ORION_CB.get_entity(entity_id=self.controller_entity.id,
                                                                entity_type=self.controller_entity.type)
-            print('Entity id already assigned', flush=True)
+            logging.warning("Controller entity_id is already assigned")
             # check the structure, extra attributes are allowed
-            keys = controller_entity_exist.dict().keys()
-            for key in self.controller_entity.dict().keys():
+            keys = controller_entity_exist.model_dump().keys()
+            for key in self.controller_entity.model_dump().keys():
                 if key not in keys:
-                    raise NameError(f'The existing entity has a different structure. Please delete it or change the id')
+                    msg = f'The existing entity has a different structure. ' \
+                          f'Please delete it or change the id'
+                    logging.error(msg)
+                    raise NameError(msg)
             else:
-                print("The existing entity contains all expected attributes", flush=True)
+                logging.info("The existing entity contains all expected "
+                             "attributes")
 
         except requests.exceptions.HTTPError as err:
             msg = err.args[0]
             if "NOT FOUND" not in msg.upper():
                 raise  # throw other errors except "entity not found"
-            print('Create new PID entity', flush=True)
+            logging.info("Create new PID entity")
             self.ORION_CB.post_entity(entity=self.controller_entity, update=True)
 
     def hold_sampling_time(self, start_time: float):
@@ -237,13 +249,15 @@ class Controller4Fiware(ABC):
         # For MIMO system, the best practice is to update the value of outputs/commands with following code
         for entity in self.command_entities:
             for _comm in entity.get_attributes():
-                print(f"calculate command {_comm.name} to id {entity.id} with type {entity.type}")
+                logging.debug(f"calculate command {_comm.name} to "
+                              f"id {entity.id} with type {entity.type}")
                 _comm.value = ...  # TODO
                 entity.update_attribute([_comm])
 
         for entity in self.output_entities:
             for _output in entity.get_attributes():
-                print(f"calculate command {_output.name} to id {entity.id} with type {entity.type}")
+                logging.debug(f"calculate output {_output.name} to "
+                              f"id {entity.id} with type {entity.type}")
                 _output.value = ...  # TODO
                 entity.update_attribute([_output])
 
@@ -286,5 +300,5 @@ class Controller4Fiware(ABC):
                     # wait until next cycle
                     self.hold_sampling_time(start_time=start_time)
         except Exception as ex:
-            print(ex)
+            logging.error(msg=str(ex))
             raise

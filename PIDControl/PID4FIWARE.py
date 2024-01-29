@@ -12,15 +12,9 @@ PID controller with Fiware interface
 """
 import time
 from abc import ABC
-from Controller import Controller4Fiware
+from Controller import Controller4Fiware, logging
 from simple_pid import PID
 import os
-
-# For debugging
-# import logging
-# logging.basicConfig(
-#     level='DEBUG',
-#     format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
 class PID4Fiware(Controller4Fiware, ABC):
@@ -29,7 +23,7 @@ class PID4Fiware(Controller4Fiware, ABC):
     """
     def __init__(self):
         path_config = os.path.join(os.getcwd(), "config")
-        print(path_config)
+        logging.debug(f"Load config from: {path_config}")
         super().__init__(config_path=path_config)
 
         # Create simple pid instance
@@ -75,7 +69,7 @@ class PID4Fiware(Controller4Fiware, ABC):
         # For multiple outputs system, the best practice is to update the value of outputs/commands with following code
         for entity in self.command_entities:
             for _comm in entity.get_attributes():
-                # print(f"calculate command {_comm.name} to id {entity.id} with type {entity.type}")
+                # logging.debug(f"calculate command {_comm.name} to id {entity.id} with type {entity.type}")
                 _comm.value = self.u
                 entity.update_attribute([_comm])
 
@@ -93,15 +87,15 @@ class PID4Fiware(Controller4Fiware, ABC):
                     self.update_token()
 
                 # update the input
-                print("read input", flush=True)
+                logging.debug("read input")
                 self.read_input_variable()
 
                 # update the controller parameters
-                print("read parameters", flush=True)
+                logging.debug("read parameters")
                 self.read_controller_parameter()
 
                 # match variables
-                print("match", flush=True)
+                logging.debug("match")
                 self.match_variables()
 
                 # update controller
@@ -110,17 +104,17 @@ class PID4Fiware(Controller4Fiware, ABC):
                 # execute only when the controller is activated
                 if self.active:
                     # calculate the output and commands
-                    print("algorithm", flush=True)
+                    logging.debug("algorithm")
                     self.control_algorithm()
 
                     # send commands
-                    print("send", flush=True)
+                    logging.debug("send")
                     self.send_commands()
 
                     # wait until next cycle
                     self.hold_sampling_time(start_time=start_time)
         except Exception as ex:
-            print(ex)
+            logging.error(str(ex))
             raise
 
 
