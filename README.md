@@ -56,6 +56,8 @@ This PID controller is based on the upon described controller framework, and can
 
 We presented the services in the following publications:
 
+- S. Blechmann, I. Sowa, M. H. Schraven, R. Streblow, D. Müller & A. Monti. Open source platform application for smart building and smart grid controls. Automation in Construction 145 (2023), 104622. ISSN: 0926-5805. https://doi.org/10.1016/j.autcon.2022.104622
+
 - Baranski, M., Storek, T. P. B., Kümpel, A., Blechmann, S., Streblow, R., 
 Müller, D. et al.,
 (2020). National 5G Energy Hub : Application of the Open-Source Cloud Platform 
@@ -74,21 +76,15 @@ Conference Series, 1343, 12063. https://doi.org/10.1088/1742-6596/1343/1/012063
 
 # Copyright
 
-2020, RWTH Aachen University, E.ON Energy Research Center, Institute for Energy 
+2024, RWTH Aachen University, E.ON Energy Research Center, Institute for Energy 
 Efficient Buildings and Indoor Climate
 
-# Contact
 
-[![EONERC EBC_Logo](https://www.ebc.eonerc.rwth-aachen.de/global/show_picture.asp?id=aaaaaaaaaakevlz)](http://www.ebc.eonerc.rwth-aachen.de)
+## Acknowledgments
 
-- [Alexander Kümpel](https://www.ebc.eonerc.rwth-aachen.de/cms/E-ON-ERC-EBC/Das-Institut/Mitarbeiter/Team2/~nepb/Kuempel-Alexander/)
+We gratefully acknowledge the financial support of the Federal Ministry <br /> 
+for Economic Affairs and Climate Action (BMWK), promotional references 
+03EN1030B and 03ET1561B.
 
-[Institute for Energy Efficient Buildings and Indoor Climate (EBC)](http://www.ebc.eonerc.rwth-aachen.de)  
-[EON Energy Research Center (EONERC)](http://www.eonerc.rwth-aachen.de)  
-[RWTH University Aachen, Germany](http://www.rwth-aachen.de)
-
-
-# Acknowledgement
-<img src="https://www.ebc.eonerc.rwth-aachen.de/global/show_picture.asp?mod=w%3d474%26h%3d%26gray%3d%26neg%3d%26mirror%3d%26flip%3d%26rleft%3d%26rright%3d%26r180%3d%26crop%3d%26id%3daaaaaaaaaayxgwf&id=aaaaaaaaaayxgwf" width="250">
-
-We gratefully acknowledge the financial support provided by the BMWi (Federal Ministry for Economic Affairs and Energy), promotional reference 03ET1561A/B/C
+<a href="https://www.bmwi.de/Navigation/EN/Home/home.html"> <img alt="BMWK" 
+src="https://raw.githubusercontent.com/N5GEH/n5geh.platform/master/docs/logos/BMWK-logo_en.png" height="100"> </a>
