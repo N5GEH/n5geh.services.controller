@@ -1,14 +1,14 @@
-# PID4Fiware
+# PID4FIWARE
 
 ### Principle of PID Controller
 The PID controller (proportional-integral-derivative controller) is commonly used in automation to control SISO (Single Input, Single Output) systems. The PID controller adjusts the control variable *u* (e.g. a valve opening or heating power) to minimize the error between the process variable *y* (e.g. volume flow or temperature) and a given setpoint. A typical control block is illustrated in the following figure ([*source*](https://en.wikipedia.org/wiki/PID_controller#/media/File:PID_en.svg)).
 
 <img src="../Figures/PID.svg" alt="A process controlled by a PID controller" width="600"/>
 
-### Description of PID4Fiware
-PID4Fiware provides a PID controller that can control a system via the [FIWARE IoT platform](https://github.com/N5GEH/n5geh.platform). PID4Fiware is virtualized into [docker](www.docker.com) container, which makes it simple to deploy. PID4Fiware is based on the controller framework for FIWARE, Controller4Fiware. For the PID algorithm, the public library [simple-pid](https://pypi.org/project/simple-pid/) is used.
+### Description of PID4FIWARE
+PID4FIWARE provides a PID controller that can control a system via the [FIWARE IoT platform](https://github.com/N5GEH/n5geh.platform). PID4FIWARE is virtualized into [docker](www.docker.com) container, which makes it simple to deploy. PID4FIWARE is based on the controller framework for FIWARE, Controller4Fiware. For the PID algorithm, the public library [simple-pid](https://pypi.org/project/simple-pid/) is used.
 
-For each deployment, PID4Fiware creates a controller entity in the Orion context broker of the IoT platform. The controller entity holds the following attributes:
+For each deployment, PID4FIWARE creates a controller entity in the Orion context broker of the IoT platform. The controller entity holds the following attributes:
 
 | Attribute Name | Description                         |
 |----------------|-------------------------------------|
@@ -58,7 +58,7 @@ docker compose up -d
 
 ### Deployment
 
-The container of PID4Fiware can either be built and then run locally or pulled directly from the docker hub.
+The container of PID4FIWARE can either be built and then run locally or pulled directly from the docker hub.
 
 The first option is to build an image locally. You need to clone this repository to your local computer or virtual machine (VM) and then change the working directory to `\n5geh.services.controller`:
 
@@ -75,19 +75,26 @@ docker build -f PIDControl/Dockerfile --tag pid4fiware .
 
 After that, you should create a file `PIDControl/.env` and set up the environment variables there properly. An example of this file is already given as `PIDControl/.env.EXAMPLE`.
 
-Most importantly, you must set up the entity information in `PIDControl/config/input.json` and `PIDControl/config/command.json`. The `id`, `type`, and the attribute name are the most important information and must be given correctly. Besides, you can also set initial values for the control parameters in `PIDControl/config/controller.json`. Then you can pass these configuration files into a docker volume and start the container with following command:
+Most importantly, you must set up the configuration files for the PID controller.
+Examples are provided in `n5geh.services.controller/config/pid`, i.e. `input.json`, `command.json`, `controller.json`.
+Since PID4FIWARE does not support extra output variables, the `output.json` can be left empty.
+
+
+> **NOTE:** For individual controllers, it is recommended to create a separate folder each time.
+
+The following command can start the container and pass the configuration files to the container as docker volumes.
 
 ```bash
 docker run -d \
     --env-file .env \
     --volume "../keycloak_token_handler/.env:/app/keycloak_token_handler/.env" \
-    --volume "./config:/app/config"
+    --volume "../config/pid:/app/config"
     --restart always \
     --name pid_controller_1 \
     pid4fiware
 ```
 
-Then the PID controller should now work properly.
+The PID controller should now work properly.
 
 > **NOTE:** The `pid_controller_1` from the above two commands is an example container name. It is recommended to name your container to something meaningful (e.g. `R2010_t_controller` for the temperature controller of room 2010).
 
@@ -98,7 +105,9 @@ currently not supported
 ```
 
 ### Testing/Development
-For development or testing, the PID controller can also be started from the python console. The configuration file under `PIDControl/config` should first be set up correctly, and then `PID4FIWARE.py` can be run from the python console. However, the PID controller interacts with the local FIWARE platform by default (hostname=localhost). Otherwise, you need to manually change the default values of the FIWARE parameters in `Controller.py`.
+For development or testing, the PID controller can also be started from the python console.
+The configuration file under `config/pid` should first be set up correctly, and then `PID4FIWARE.py` can be run from the python console.
+In this case, ``config_path`` must be set up properly in `PID4FIWARE.py`.
 
 # Control Panel
 
