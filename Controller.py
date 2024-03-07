@@ -77,12 +77,15 @@ class Controller4Fiware(ABC):
         controller_entity_dict = self.controller_entity.model_dump()
         controller_entity_dict["id"] = os.getenv("CONTROLLER_ENTITY_ID", "urn:ngsi-ld:Controller:001")
         controller_entity_dict["type"] = os.getenv("CONTROLLER_ENTITY_TYPE", "Controller")
+
         self.controller_entity = ContextEntity(**controller_entity_dict)
-        self.fiware_params = dict()
-        self.fiware_params["ql_url"] = os.getenv("QL_URL", "http://localhost:8668")
-        self.fiware_params["cb_url"] = os.getenv("CB_URL", "http://localhost:1026")
-        self.fiware_params["service"] = os.getenv("FIWARE_SERVICE", "controller")
-        self.fiware_params["service_path"] = os.getenv("FIWARE_SERVICE_PATH", "/")
+
+        self.fiware_params = {
+            "ql_url": os.getenv("QL_URL", "http://localhost:8668"),
+            "cb_url": os.getenv("CB_URL", "http://localhost:1026"),
+            "service": os.getenv("FIWARE_SERVICE", "controller"),
+            "service_path": os.getenv("FIWARE_SERVICE_PATH", "/")
+        }
 
         # Create the fiware header
         fiware_header = FiwareHeader(service=self.fiware_params['service'],

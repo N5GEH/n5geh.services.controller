@@ -15,17 +15,16 @@ from abc import ABC
 from Controller import Controller4Fiware, logging
 from simple_pid import PID
 import os
+import dotenv
 
 
 class PID4Fiware(Controller4Fiware, ABC):
     """
     PID controller that interact with Fiware platform.
     """
-    def __init__(self):
-        path_config = os.path.join(os.getcwd(), "config")
-        logging.debug(f"Load config from: {path_config}")
-        super().__init__(config_path=path_config)
-
+    def __init__(self, **kwargs):
+        dotenv.load_dotenv()
+        super().__init__(**kwargs)
         # Create simple pid instance
         self.pid = PID(Kp=self.controller_entity.kp.value,
                        Ki=self.controller_entity.ki.value,
@@ -119,6 +118,11 @@ class PID4Fiware(Controller4Fiware, ABC):
 
 
 if __name__ == '__main__':
-    pid_controller = PID4Fiware()
+    # for productive deployment
+    path_config = os.path.join(os.getcwd(), "config")
+    logging.debug(f"Load config from: {path_config}")
+    pid_controller = PID4Fiware(config_path=path_config)
+    # for local test
+    # pid_controller = PID4Fiware(config_path="../config/pid")
     pid_controller.create_controller_entity()
     pid_controller.control_cycle()
