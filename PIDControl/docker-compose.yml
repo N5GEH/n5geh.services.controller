@@ -9,8 +9,7 @@ services:
     restart: always
     volumes:
       # bind mount the secret on the local file. The secret has to be updated in the local file
-      - ../keycloak_token_handler/.env:/app/keycloak_token_handler/.env
-      - ./config:/app/config
+      - ../config/pid:/app/config
 #      - ./PID4FIWARE.py:/app/PID4FIWARE.py
     env_file:
       - .env

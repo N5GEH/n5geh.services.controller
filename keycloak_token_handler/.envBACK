@@ -1,7 +1,0 @@
-# Example url http://host.docker.internal:8080/auth/realms/n5geh/protocol/openid-connect/token
-# host.docker.internal inside the container refers to localhost
-KEYCLOAK_HOST = ""
-
-# Client ID and secret can be retrieved from keycloak
-CLIENT_ID = ""
-CLIENT_SECRET = ""
