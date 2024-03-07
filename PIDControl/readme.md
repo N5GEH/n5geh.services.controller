@@ -19,11 +19,12 @@ For each deployment, PID4FIWARE creates a controller entity in the Orion context
 | limLower        | Lower limit of the control variable |
 | limUpper      | Upper limit of the control variable |
 
-In other words, these control parameters are stored on the IoT platform, which can be adjusted by sending requests to the Orion context broker. Note that the reverse mode (reverse action, e.g. control cooling power based on room temperature) can be activated by assigning negative values to `kp`, `ki`, and `kd`. This data structure as well as initial values of the parameters are defined in the configuration file `config/controller.json`
+In other words, these control parameters are stored on the IoT platform, which can be adjusted by sending requests to the Orion context broker.
+Note that the reverse mode (reverse action, e.g. control cooling power based on room temperature) can be activated by assigning negative values to `kp`, `ki`, and `kd`.
+This data structure as well as initial values of the parameters are defined in the configuration file `config/controller.json`
 
-In order to take measurements and actions, the PID controller has to know the entity name and the attribute name of the sensor and actuator devices. This information is given in the configuration files `config/input.json` and `config/command.json`. Although the sensor/actuator devices may have multiple attributes, only the measured/controlled one should be given in the configuration files.
-
-> **NOTE:** The `config/output.json` is not used and left empty in this case.
+In order to take measurements and actions, the PID controller need to know the entity name and the attribute name of the sensor and the actuator.
+This information is given in the configuration files as described in [Deployment](#deployment) section
 
 Except the information about the sensor and actuator, some other information must still be given to the PID controller as environment variables, including the platform-specific data (e.g. context broker url), controller entity id/type, sampling time, etc. All supported environment variables are shown below.
 
@@ -75,12 +76,10 @@ docker build -f PIDControl/Dockerfile --tag pid4fiware .
 
 After that, you should create a file `PIDControl/.env` and set up the environment variables there properly. An example of this file is already given as `PIDControl/.env.EXAMPLE`.
 
-Most importantly, you must set up the configuration files for the PID controller.
-Examples are provided in `n5geh.services.controller/config/pid`, i.e. `input.json`, `command.json`, `controller.json`.
-Since PID4FIWARE does not support extra output variables, the `output.json` can be left empty.
+Most importantly, you must set up the configuration files for the PID controller, especially the `id` and `type` of the controller entity, the input entity, and the command entity.
+Examples are provided in `/n5geh.services.controller/config/pid`, i.e. `input.json`, `command.json`, `controller.json`. Since PID4FIWARE does not support extra output variables, the `output.json` can be left empty.
 
-
-> **NOTE:** For individual controllers, it is recommended to create a separate folder each time.
+> **NOTE:** Each individual controller instance should have its own config folder. The configuration files under ``pid`` are only an example.
 
 The following command can start the container and pass the configuration files to the container as docker volumes.
 

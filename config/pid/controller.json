@@ -1,5 +1,5 @@
 {
-    "id": "PIDController:example",
+    "id": "urn:ngsi-ld:PIDController:001",
     "type": "PIDController",
     "kd": {
         "type": "Number",

@@ -57,7 +57,6 @@ class Controller4Fiware(ABC):
 
         # Config file of the controller must contain the initial value of parameters
         self.controller_entity = ContextEntity.model_validate(controller_dict)
-        # TODO check the command entity. All attributes should have the type "command".
 
         self.input_entities = [ContextEntity.model_validate(entity)
                                for entity in input_list]
@@ -74,11 +73,6 @@ class Controller4Fiware(ABC):
         # Read from ENV
         self.sampling_time = float(os.getenv("SAMPLING_TIME", 0.5))
         assert self.sampling_time >= 0.1, "Controller sampling time must be larger than 0.1 sec"
-        controller_entity_dict = self.controller_entity.model_dump()
-        controller_entity_dict["id"] = os.getenv("CONTROLLER_ENTITY_ID", "urn:ngsi-ld:Controller:001")
-        controller_entity_dict["type"] = os.getenv("CONTROLLER_ENTITY_TYPE", "Controller")
-
-        self.controller_entity = ContextEntity(**controller_entity_dict)
 
         self.fiware_params = {
             "ql_url": os.getenv("QL_URL", "http://localhost:8668"),
