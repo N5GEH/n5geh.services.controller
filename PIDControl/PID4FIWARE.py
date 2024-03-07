@@ -12,10 +12,18 @@ PID controller with Fiware interface
 """
 import time
 from abc import ABC
-from Controller import Controller4Fiware, logging
+from controller4fiware.Controller import Controller4Fiware
+import logging
 from simple_pid import PID
 import os
 import dotenv
+
+# Get log level from environment variable, default to INFO if not set
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+
+# Configure logging
+logging.basicConfig(level=log_level,
+                    format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
 class PID4Fiware(Controller4Fiware, ABC):
