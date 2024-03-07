@@ -1,0 +1,11 @@
+[
+    {
+        "id": "urn:ngsi-ld:WatchDog:001",
+        "type": "WatchDog",
+        "isActive": {
+            "type": "Boolean",
+            "value": null,
+            "metadata": {}
+        }
+    }
+]
