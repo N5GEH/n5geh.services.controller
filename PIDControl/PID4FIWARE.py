@@ -11,7 +11,6 @@ Updated on Tue Mar 15 15:47:00 2022
 PID controller with Fiware interface
 """
 import time
-from abc import ABC
 from controller4fiware.Controller import Controller4Fiware
 import logging
 from simple_pid import PID
@@ -26,7 +25,7 @@ logging.basicConfig(level=log_level,
                     format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 
 
-class PID4Fiware(Controller4Fiware, ABC):
+class PID4Fiware(Controller4Fiware):
     """
     PID controller that interact with Fiware platform.
     """

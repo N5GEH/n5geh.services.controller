@@ -28,19 +28,19 @@ Controller4Fiware uses the [FiLiP](https://github.com/N5GEH/FiLiP) library to in
 
 **Configuration Files**
 
-In oder to interact with the FIWARE platform, the controllers need to know the data structure on the platform, i.e. which devices can take measurements or make actions and how dose the controller look like. For this purpose, each concrete controller must define four configuration files in `config` folder: `input.json`, `output.json`, `command.json`, and `controller.json`.
+In oder to interact with the FIWARE platform, the controllers need to know the data structure on the platform, i.e. which devices can take measurements or make actions and how dose the controller look like. For this purpose, individual controllers require four configuration files: `input.json`, `output.json`, `command.json`, and `controller.json`. An example can be found under `/config/example`
 
-`input.json` contains the entities and their attributes, which should be taken as input variables. The controller reads their values in every control cycle.
+`input.json` defines the entities and their attributes, which should be taken as input variables. The controller reads their values in every control cycle.
 
-`output.json` contains the entities and their attributes, which should be taken as output variables. The controller updates their values in every control cycle.
+`output.json` defines the entities and their attributes, which should be taken as output variables. The controller updates their values in every control cycle.
 
-`command.json` contains the actuator entities (devices that have commands) and their commands, which are updated by the controller in every control cycle.
+`command.json` defines the actuator entities (devices that have commands) and their commands, which are updated by the controller in every control cycle.
 
 > **NOTE:** The entities can have many attributes, some of which are not relevant for the controller, e.g. relationships or some static attributes. Therefore, only the measured/controlled attributes should be given in the configuration files.
 
 > **NOTE:** Commands and output variables are different. The commands will be forwarded to the devices, while the output variables will only be updated on the platform. If no output variables are required, `output.json` can be left empty.
 
-`controller.json` defines the data structure of a concrete controller, i.e. which parameters are required (e.g. kp, ki, and kd for a PID controller). These parameters will be read from FIWARE platform in every control cycle.
+`controller.json` defines the controller entity and its parameter structure, e.g. kp, ki, and kd for a PID controller. These parameters will be read from FIWARE platform in every control cycle.
 
 ## Existing Controller Services
 
@@ -51,6 +51,36 @@ The controller receives the process variable (measurement) from the context brok
 The computed control variable (actuation) is sent back to the context broker afterwards and passed as a command to the  IoT device (actuator).
 
 This PID controller is based on the upon described controller framework, and can be taken as an example to implement a concrete controller.
+
+## Usage
+
+### Installation
+Install controller4fiware via GitHub link:
+```shell
+pip install git+https://github.com/N5GEH/n5geh.services.controller.git
+```
+
+Build your own controller based on ``Controller4Fiware`` class, for example:
+````python
+from controller4fiware.Controller import Controller4Fiware
+import dotenv
+
+
+class CustomController4Fiware(Controller4Fiware):
+    """
+    An XYZ controller that interact with Fiware platform.
+    """
+    def __init__(self, **kwargs):
+        dotenv.load_dotenv()
+        super().__init__(**kwargs)
+        ...
+        
+    def control_algorithm(self):
+        ...
+
+    def control_cycle(self):
+        ...
+````
 
 # Publications
 
