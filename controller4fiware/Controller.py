@@ -177,7 +177,7 @@ class Controller4Fiware(ABC):
             for entity in self.command_entities:
                 for _comm in entity.get_attributes():
                     # logging.debug(f"send command {_comm.name} to id {entity.id} with type {entity.type}")
-                    _comm = NamedCommand(**_comm.dict())
+                    _comm = NamedCommand(**_comm.model_dump())
                     self.ORION_CB.post_command(entity_id=entity.id,
                                                entity_type=entity.type,
                                                command=_comm)
