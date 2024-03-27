@@ -125,11 +125,10 @@ class PID4Fiware(Controller4Fiware):
 
 
 if __name__ == '__main__':
-    # for productive deployment
-    # path_config = os.path.join(os.getcwd(), "config")
-    # logging.debug(f"Load config from: {path_config}")
-    # pid_controller = PID4Fiware(config_path=path_config)
+    path_config = os.path.join(os.getcwd(), "config")
+    logging.debug(f"Load config from: {path_config}")
+    pid_controller = PID4Fiware(config_path=path_config)
     # for local test
-    pid_controller = PID4Fiware(config_path="D:\Git\\n5geh.services.controller\config\solar")
+    # pid_controller = PID4Fiware(config_path="../config/pid")
     pid_controller.create_controller_entity()
     pid_controller.control_cycle()
