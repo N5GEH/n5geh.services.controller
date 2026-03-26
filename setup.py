@@ -11,7 +11,7 @@ setup(
     author_email='junsong.du@eonerc.rwth-aachen.de',
     install_requires=[
         'python-dotenv~=1.0.0',
-        'filip~=0.3.0'
+        'filip~=0.7.4'
         # Add any other dependencies your package requires
     ],
     entry_points={
